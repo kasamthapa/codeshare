@@ -2,7 +2,7 @@
   "name": "CodeShare",
   "short_name": "CodeShare",
   "description": "Real-time collaborative code sharing for classrooms",
-  "start_url": "/",
+  "start_url": "/?v=2",
   "display": "standalone",
   "background_color": "#0d1117",
   "theme_color": "#0d1117",
