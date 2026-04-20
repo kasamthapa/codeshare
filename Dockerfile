@@ -23,7 +23,7 @@ ENV NODE_ENV=production
 
 # Only copy production deps manifest, then install without devDeps
 COPY package*.json ./
-RUN npm ci --omit=dev && npm cache clean --force
+RUN npm ci --omit=dev --ignore-scripts && npm cache clean --force
 
 # Copy server and pre-built assets
 COPY server.js ./
