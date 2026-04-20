@@ -3,7 +3,9 @@
   "version": "1.0.0",
   "description": "Real-time collaborative code editor — classroom ready",
   "main": "server.js",
-  "engines": { "node": ">=18.0.0" },
+  "engines": {
+    "node": ">=18.0.0"
+  },
   "scripts": {
     "start": "node server.js",
     "build": "node build.js",
@@ -14,6 +16,7 @@
     "compression": "^1.8.1",
     "express": "^4.18.2",
     "helmet": "^8.1.0",
+    "mongodb": "^7.1.1",
     "socket.io": "^4.7.2"
   },
   "devDependencies": {
