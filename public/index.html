@@ -4,227 +4,413 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>CodeShare — Real-time Collaborative Editor</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet" />
   <style>
-    /* ── Reset & base ────────────────────────────────────────── */
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
-    body {
-      background: #1e1e1e;
-      color: #d4d4d4;
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    :root {
+      --bg:        #0d1117;
+      --bg2:       #161b22;
+      --bg3:       #21262d;
+      --border:    #30363d;
+      --border2:   #3d444d;
+      --text:      #e6edf3;
+      --text2:     #8d96a0;
+      --text3:     #484f58;
+      --accent:    #2f81f7;
+      --accent2:   #388bfd;
+      --accent-bg: rgba(47,129,247,0.12);
+      --green:     #3fb950;
+      --red:       #f85149;
+      --red-bg:    rgba(248,81,73,0.1);
+      --yellow:    #d29922;
+      --glow:      0 0 40px rgba(47,129,247,0.08);
+    }
+
+    html, body {
       min-height: 100vh;
-      display: flex;
-      align-items: center;
-      justify-content: center;
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    }
+
+    /* ── Animated background grid ─────────────────────────────── */
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background-image:
+        linear-gradient(rgba(47,129,247,0.03) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(47,129,247,0.03) 1px, transparent 1px);
+      background-size: 40px 40px;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    /* ── Glow orbs ────────────────────────────────────────────── */
+    body::after {
+      content: '';
+      position: fixed;
+      top: -30%;
+      left: -10%;
+      width: 60%;
+      height: 60%;
+      background: radial-gradient(ellipse, rgba(47,129,247,0.06) 0%, transparent 70%);
+      pointer-events: none;
+      z-index: 0;
     }
 
     /* ── Layout ──────────────────────────────────────────────── */
-    .wrapper {
-      width: 100%;
-      max-width: 460px;
-      padding: 1.5rem;
+    .page {
+      position: relative;
+      z-index: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      min-height: 100vh;
+      padding: 3rem 1.5rem 2rem;
     }
 
-    /* ── Branding ────────────────────────────────────────────── */
+    /* ── Brand ───────────────────────────────────────────────── */
     .brand {
       text-align: center;
-      margin-bottom: 2rem;
-    }
-    .brand h1 {
-      font-size: 2rem;
-      font-weight: 700;
-      color: #007acc;
-      letter-spacing: -0.5px;
-    }
-    .brand p {
-      margin-top: 0.4rem;
-      font-size: 0.875rem;
-      color: #6a6a6a;
+      margin-bottom: 3rem;
     }
 
-    /* ── Tab bar ─────────────────────────────────────────────── */
-    .tabs {
+    .brand-logo {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.6rem;
+      margin-bottom: 1rem;
+    }
+
+    .logo-icon {
+      width: 44px;
+      height: 44px;
+      background: linear-gradient(135deg, var(--accent) 0%, #9e6bff 100%);
+      border-radius: 12px;
       display: flex;
-      background: #252526;
-      border: 1px solid #3c3c3c;
-      border-bottom: none;
-      border-radius: 8px 8px 0 0;
-      overflow: hidden;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.3rem;
+      box-shadow: 0 4px 20px rgba(47,129,247,0.3);
     }
-    .tab-btn {
-      flex: 1;
-      padding: 0.8rem;
-      background: transparent;
-      border: none;
-      color: #6a6a6a;
+
+    .brand h1 {
+      font-size: 1.9rem;
+      font-weight: 700;
+      background: linear-gradient(135deg, var(--text) 30%, var(--accent2) 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      letter-spacing: -0.5px;
+    }
+
+    .brand-tagline {
       font-size: 0.9rem;
-      cursor: pointer;
-      transition: background 0.15s, color 0.15s;
-      border-bottom: 2px solid transparent;
+      color: var(--text2);
+      margin-top: 0.5rem;
     }
-    .tab-btn.active {
-      background: #1e1e1e;
-      color: #d4d4d4;
-      border-bottom-color: #007acc;
+
+    .brand-badges {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+      margin-top: 1rem;
+      flex-wrap: wrap;
     }
-    .tab-btn:not(.active):hover {
-      background: #2a2d2e;
-      color: #c0c0c0;
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.3rem;
+      padding: 0.25rem 0.65rem;
+      border-radius: 20px;
+      font-size: 0.72rem;
+      font-weight: 500;
+      border: 1px solid var(--border);
+      background: var(--bg2);
+      color: var(--text2);
     }
+    .badge.green { color: var(--green); border-color: rgba(63,185,80,0.3); background: rgba(63,185,80,0.06); }
+    .badge.blue  { color: var(--accent2); border-color: rgba(56,139,253,0.3); background: var(--accent-bg); }
 
     /* ── Card ────────────────────────────────────────────────── */
     .card {
-      background: #252526;
-      border: 1px solid #3c3c3c;
-      border-top: none;
-      border-radius: 0 0 8px 8px;
-      padding: 1.5rem;
+      width: 100%;
+      max-width: 460px;
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      overflow: hidden;
+      box-shadow: 0 8px 40px rgba(0,0,0,0.4), var(--glow);
     }
-    .tab-panel { display: none; }
+
+    /* ── Tabs ────────────────────────────────────────────────── */
+    .tabs {
+      display: flex;
+      border-bottom: 1px solid var(--border);
+      background: var(--bg);
+    }
+
+    .tab-btn {
+      flex: 1;
+      padding: 0.9rem;
+      background: transparent;
+      border: none;
+      color: var(--text2);
+      font-size: 0.875rem;
+      font-weight: 500;
+      font-family: inherit;
+      cursor: pointer;
+      transition: color 0.15s, background 0.15s;
+      border-bottom: 2px solid transparent;
+      margin-bottom: -1px;
+    }
+    .tab-btn.active {
+      color: var(--text);
+      border-bottom-color: var(--accent);
+      background: var(--bg2);
+    }
+    .tab-btn:not(.active):hover {
+      color: var(--text);
+      background: rgba(255,255,255,0.03);
+    }
+
+    /* ── Form body ───────────────────────────────────────────── */
+    .tab-panel { display: none; padding: 1.75rem; }
     .tab-panel.active { display: block; }
 
-    /* ── Form elements ───────────────────────────────────────── */
-    .form-group { margin-bottom: 1rem; }
+    .form-group { margin-bottom: 1.1rem; }
 
     label {
-      display: block;
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
       font-size: 0.8rem;
-      color: #9cdcfe;
-      margin-bottom: 0.35rem;
       font-weight: 500;
+      color: var(--text2);
+      margin-bottom: 0.45rem;
+      letter-spacing: 0.3px;
+    }
+
+    label .optional {
+      font-weight: 400;
+      color: var(--text3);
+      font-size: 0.75rem;
+    }
+
+    .input-wrap {
+      position: relative;
+    }
+
+    .input-icon {
+      position: absolute;
+      left: 0.8rem;
+      top: 50%;
+      transform: translateY(-50%);
+      font-size: 0.9rem;
+      pointer-events: none;
+      opacity: 0.5;
     }
 
     input {
       width: 100%;
-      padding: 0.55rem 0.75rem;
-      background: #1e1e1e;
-      border: 1px solid #3c3c3c;
-      border-radius: 4px;
-      color: #d4d4d4;
-      font-size: 0.9rem;
-      transition: border-color 0.15s;
+      padding: 0.65rem 0.85rem 0.65rem 2.3rem;
+      background: var(--bg3);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      color: var(--text);
+      font-size: 0.875rem;
+      font-family: inherit;
+      transition: border-color 0.15s, box-shadow 0.15s;
     }
     input:focus {
       outline: none;
-      border-color: #007acc;
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px rgba(47,129,247,0.15);
     }
-    input::placeholder { color: #4a4a4a; }
+    input::placeholder { color: var(--text3); }
 
     .hint {
-      margin-top: 0.3rem;
-      font-size: 0.75rem;
-      color: #6a9955;
+      margin-top: 0.35rem;
+      font-size: 0.73rem;
+      color: var(--text3);
+    }
+
+    /* ── Divider ─────────────────────────────────────────────── */
+    .divider {
+      height: 1px;
+      background: var(--border);
+      margin: 1.25rem 0;
     }
 
     /* ── Primary button ──────────────────────────────────────── */
     .btn-primary {
       width: 100%;
-      padding: 0.7rem;
-      margin-top: 0.25rem;
-      background: #007acc;
+      padding: 0.75rem;
+      background: var(--accent);
       color: #fff;
       border: none;
-      border-radius: 4px;
-      font-size: 0.95rem;
-      font-weight: 500;
+      border-radius: 8px;
+      font-size: 0.9rem;
+      font-weight: 600;
+      font-family: inherit;
       cursor: pointer;
-      transition: background 0.15s;
+      transition: background 0.15s, box-shadow 0.15s, transform 0.1s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.4rem;
     }
-    .btn-primary:hover  { background: #0096e0; }
-    .btn-primary:active { background: #005fa3; }
-    .btn-primary:disabled { background: #004a7a; cursor: not-allowed; }
+    .btn-primary:hover:not(:disabled) {
+      background: var(--accent2);
+      box-shadow: 0 4px 16px rgba(47,129,247,0.35);
+      transform: translateY(-1px);
+    }
+    .btn-primary:active:not(:disabled) { transform: translateY(0); box-shadow: none; }
+    .btn-primary:disabled { opacity: 0.5; cursor: not-allowed; }
 
     /* ── Error banner ────────────────────────────────────────── */
     .error-msg {
       display: none;
-      background: #3a1515;
-      border: 1px solid #f48771;
-      color: #f48771;
-      padding: 0.55rem 0.75rem;
-      border-radius: 4px;
-      font-size: 0.85rem;
-      margin-bottom: 1rem;
+      align-items: center;
+      gap: 0.5rem;
+      background: var(--red-bg);
+      border: 1px solid rgba(248,81,73,0.3);
+      color: var(--red);
+      padding: 0.6rem 0.85rem;
+      border-radius: 8px;
+      font-size: 0.83rem;
+      margin-bottom: 1.1rem;
     }
+    .error-msg.show { display: flex; }
+
+    /* ── Footer ──────────────────────────────────────────────── */
+    .footer {
+      margin-top: auto;
+      padding-top: 2.5rem;
+      text-align: center;
+      font-size: 0.78rem;
+      color: var(--text3);
+    }
+    .footer a { color: var(--text2); text-decoration: none; }
+    .footer a:hover { color: var(--text); }
+    .heart { color: #f85149; }
   </style>
 </head>
 <body>
+<div class="page">
 
-<div class="wrapper">
-  <!-- Brand header -->
+  <!-- Brand -->
   <div class="brand">
-    <h1>⚡ CodeShare</h1>
-    <p>Real-time collaborative code editor &mdash; no login required</p>
+    <div class="brand-logo">
+      <div class="logo-icon">⚡</div>
+      <h1>CodeShare</h1>
+    </div>
+    <p class="brand-tagline">Real-time collaborative code editor &mdash; built for classrooms</p>
+    <div class="brand-badges">
+      <span class="badge green">● No login required</span>
+      <span class="badge blue">⚡ Real-time sync</span>
+      <span class="badge">🔒 Password protected</span>
+    </div>
   </div>
 
-  <!-- Tab switcher -->
-  <div class="tabs">
-    <button class="tab-btn active" id="tab-create" onclick="switchTab('create')">Create Room</button>
-    <button class="tab-btn"        id="tab-join"   onclick="switchTab('join')">Join Room</button>
-  </div>
-
+  <!-- Main card -->
   <div class="card">
+    <div class="tabs">
+      <button class="tab-btn active" id="tab-create" onclick="switchTab('create')">Create Room</button>
+      <button class="tab-btn"        id="tab-join"   onclick="switchTab('join')">Join Room</button>
+    </div>
 
-    <!-- ── Create panel ──────────────────────────────────────── -->
+    <!-- Create panel -->
     <div id="panel-create" class="tab-panel active">
-      <div id="create-error" class="error-msg"></div>
+      <div id="create-error" class="error-msg">⚠ <span></span></div>
 
       <div class="form-group">
         <label for="create-name">Room Name</label>
-        <input id="create-name" type="text" placeholder="e.g. python-101" autocomplete="off" />
-        <div class="hint">Letters, numbers, and hyphens. Spaces become hyphens.</div>
+        <div class="input-wrap">
+          <span class="input-icon">#</span>
+          <input id="create-name" type="text" placeholder="e.g. python-101" autocomplete="off" />
+        </div>
+        <div class="hint">Letters, numbers and hyphens. Spaces become hyphens.</div>
       </div>
 
       <div class="form-group">
         <label for="create-pass">Password</label>
-        <input id="create-pass" type="password" placeholder="Choose a password" />
+        <div class="input-wrap">
+          <span class="input-icon">🔒</span>
+          <input id="create-pass" type="password" placeholder="Choose a password" />
+        </div>
       </div>
 
       <div class="form-group">
-        <label for="create-user">Your Name <span style="color:#4a4a4a">(optional)</span></label>
-        <input id="create-user" type="text" placeholder="e.g. Alice" autocomplete="off" />
+        <label for="create-user">Your Name <span class="optional">(optional)</span></label>
+        <div class="input-wrap">
+          <span class="input-icon">👤</span>
+          <input id="create-user" type="text" placeholder="e.g. Alice" autocomplete="off" />
+        </div>
       </div>
 
-      <button class="btn-primary" id="create-btn" onclick="createRoom()">Create Room →</button>
+      <div class="divider"></div>
+      <button class="btn-primary" id="create-btn" onclick="createRoom()">
+        <span id="create-btn-text">Create Room</span>
+        <span id="create-btn-arrow">→</span>
+      </button>
     </div>
 
-    <!-- ── Join panel ────────────────────────────────────────── -->
+    <!-- Join panel -->
     <div id="panel-join" class="tab-panel">
-      <div id="join-error" class="error-msg"></div>
+      <div id="join-error" class="error-msg">⚠ <span></span></div>
 
       <div class="form-group">
         <label for="join-name">Room Name</label>
-        <input id="join-name" type="text" placeholder="e.g. python-101" autocomplete="off" />
+        <div class="input-wrap">
+          <span class="input-icon">#</span>
+          <input id="join-name" type="text" placeholder="e.g. python-101" autocomplete="off" />
+        </div>
       </div>
 
       <div class="form-group">
         <label for="join-pass">Password</label>
-        <input id="join-pass" type="password" placeholder="Enter room password" />
+        <div class="input-wrap">
+          <span class="input-icon">🔒</span>
+          <input id="join-pass" type="password" placeholder="Enter room password" />
+        </div>
       </div>
 
       <div class="form-group">
-        <label for="join-user">Your Name <span style="color:#4a4a4a">(optional)</span></label>
-        <input id="join-user" type="text" placeholder="e.g. Bob" autocomplete="off" />
+        <label for="join-user">Your Name <span class="optional">(optional)</span></label>
+        <div class="input-wrap">
+          <span class="input-icon">👤</span>
+          <input id="join-user" type="text" placeholder="e.g. Bob" autocomplete="off" />
+        </div>
       </div>
 
-      <button class="btn-primary" id="join-btn" onclick="joinRoom()">Join Room →</button>
+      <div class="divider"></div>
+      <button class="btn-primary" id="join-btn" onclick="joinRoom()">
+        <span id="join-btn-text">Join Room</span>
+        <span id="join-btn-arrow">→</span>
+      </button>
     </div>
+  </div>
 
-  </div><!-- .card -->
-</div><!-- .wrapper -->
+  <!-- Footer -->
+  <div class="footer">
+    Made with <span class="heart">♥</span> by <a href="#" target="_blank">Kasam Thapa Magar</a>
+  </div>
+
+</div><!-- .page -->
 
 <script>
-  // ────────────────────────────────────────────────────────────
-  // Pre-fill join form when arriving via a shareable link
-  // e.g. /room/python-101  OR  /?join=python-101
-  // ────────────────────────────────────────────────────────────
   (function prefill() {
-    // Case 1: user navigated to /room/xyz directly
     const pathMatch = window.location.pathname.match(/^\/room\/(.+)$/);
-    // Case 2: redirected with ?join=xyz query param
-    const params = new URLSearchParams(window.location.search);
+    const params    = new URLSearchParams(window.location.search);
     const joinParam = params.get('join');
-
-    const roomHint = pathMatch ? decodeURIComponent(pathMatch[1]) : joinParam;
+    const roomHint  = pathMatch ? decodeURIComponent(pathMatch[1]) : joinParam;
     if (roomHint) {
       switchTab('join');
       document.getElementById('join-name').value = roomHint;
@@ -232,7 +418,6 @@
     }
   })();
 
-  // ── Tab switching ────────────────────────────────────────────
   function switchTab(tab) {
     const isCreate = tab === 'create';
     document.getElementById('tab-create').classList.toggle('active',  isCreate);
@@ -241,29 +426,28 @@
     document.getElementById('panel-join'  ).classList.toggle('active', !isCreate);
   }
 
-  // ── Error helpers ─────────────────────────────────────────────
-  function showError(id, msg) {
-    const el = document.getElementById(id);
-    el.textContent = msg;
-    el.style.display = 'block';
+  function showError(panelId, msg) {
+    const el   = document.getElementById(panelId + '-error');
+    el.querySelector('span').textContent = msg;
+    el.classList.add('show');
   }
-  function clearError(id) {
-    document.getElementById(id).style.display = 'none';
+  function clearError(panelId) {
+    document.getElementById(panelId + '-error').classList.remove('show');
   }
 
-  // ── Create room ───────────────────────────────────────────────
   async function createRoom() {
-    clearError('create-error');
+    clearError('create');
     const roomName = document.getElementById('create-name').value.trim();
     const password = document.getElementById('create-pass').value;
     const username = document.getElementById('create-user').value.trim() || 'Host';
 
-    if (!roomName) return showError('create-error', 'Please enter a room name.');
-    if (!password) return showError('create-error', 'Please choose a password.');
+    if (!roomName) return showError('create', 'Please enter a room name.');
+    if (!password) return showError('create', 'Please choose a password.');
 
     const btn = document.getElementById('create-btn');
     btn.disabled = true;
-    btn.textContent = 'Creating…';
+    document.getElementById('create-btn-text').textContent = 'Creating…';
+    document.getElementById('create-btn-arrow').textContent = '';
 
     try {
       const res  = await fetch('/api/create-room', {
@@ -272,39 +456,37 @@
         body: JSON.stringify({ roomName, password }),
       });
       const data = await res.json();
-
       if (!res.ok) {
-        showError('create-error', data.error);
+        showError('create', data.error);
         btn.disabled = false;
-        btn.textContent = 'Create Room →';
+        document.getElementById('create-btn-text').textContent = 'Create Room';
+        document.getElementById('create-btn-arrow').textContent = '→';
         return;
       }
-
-      // Save credentials in sessionStorage; room.html reads them on load
       sessionStorage.setItem('roomPassword', password);
       sessionStorage.setItem('username', username);
       window.location.href = `/room/${data.roomName}`;
-
     } catch {
-      showError('create-error', 'Could not reach the server. Is it running?');
+      showError('create', 'Could not reach the server. Is it running?');
       btn.disabled = false;
-      btn.textContent = 'Create Room →';
+      document.getElementById('create-btn-text').textContent = 'Create Room';
+      document.getElementById('create-btn-arrow').textContent = '→';
     }
   }
 
-  // ── Join room ─────────────────────────────────────────────────
   async function joinRoom() {
-    clearError('join-error');
+    clearError('join');
     const roomName = document.getElementById('join-name').value.trim();
     const password = document.getElementById('join-pass').value;
     const username = document.getElementById('join-user').value.trim();
 
-    if (!roomName) return showError('join-error', 'Please enter a room name.');
-    if (!password) return showError('join-error', 'Please enter the password.');
+    if (!roomName) return showError('join', 'Please enter a room name.');
+    if (!password) return showError('join', 'Please enter the password.');
 
     const btn = document.getElementById('join-btn');
     btn.disabled = true;
-    btn.textContent = 'Joining…';
+    document.getElementById('join-btn-text').textContent = 'Joining…';
+    document.getElementById('join-btn-arrow').textContent = '';
 
     try {
       const res  = await fetch('/api/join-room', {
@@ -313,32 +495,29 @@
         body: JSON.stringify({ roomName, password }),
       });
       const data = await res.json();
-
       if (!res.ok) {
-        showError('join-error', data.error);
+        showError('join', data.error);
         btn.disabled = false;
-        btn.textContent = 'Join Room →';
+        document.getElementById('join-btn-text').textContent = 'Join Room';
+        document.getElementById('join-btn-arrow').textContent = '→';
         return;
       }
-
       sessionStorage.setItem('roomPassword', password);
       sessionStorage.setItem('username', username);
       window.location.href = `/room/${data.roomName}`;
-
     } catch {
-      showError('join-error', 'Could not reach the server. Is it running?');
+      showError('join', 'Could not reach the server. Is it running?');
       btn.disabled = false;
-      btn.textContent = 'Join Room →';
+      document.getElementById('join-btn-text').textContent = 'Join Room';
+      document.getElementById('join-btn-arrow').textContent = '→';
     }
   }
 
-  // ── Submit on Enter ───────────────────────────────────────────
   document.addEventListener('keydown', (e) => {
     if (e.key !== 'Enter') return;
     const createActive = document.getElementById('panel-create').classList.contains('active');
     if (createActive) createRoom(); else joinRoom();
   });
 </script>
-
 </body>
 </html>

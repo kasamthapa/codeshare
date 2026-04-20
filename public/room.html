@@ -4,131 +4,528 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>CodeShare</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet" />
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-    html, body { height: 100%; background: #1e1e1e; color: #d4d4d4; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; overflow: hidden; }
+
+    :root {
+      --bg:        #0d1117;
+      --bg2:       #161b22;
+      --bg3:       #21262d;
+      --bg4:       #1c2128;
+      --border:    #30363d;
+      --border2:   #3d444d;
+      --text:      #e6edf3;
+      --text2:     #8d96a0;
+      --text3:     #484f58;
+      --accent:    #2f81f7;
+      --accent2:   #388bfd;
+      --accent-bg: rgba(47,129,247,0.12);
+      --green:     #3fb950;
+      --green-bg:  rgba(63,185,80,0.1);
+      --red:       #f85149;
+      --red-bg:    rgba(248,81,73,0.1);
+      --topbar-h:  52px;
+      --tabbar-h:  38px;
+      --status-h:  24px;
+    }
+
+    html, body { height: 100%; overflow: hidden; background: var(--bg); color: var(--text);
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif; }
+
     #app { display: flex; flex-direction: column; height: 100vh; }
 
-    /* Top bar */
-    #topbar { flex-shrink:0; height:44px; background:#252526; border-bottom:1px solid #3c3c3c; display:flex; align-items:center; gap:0.75rem; padding:0 0.9rem; overflow:hidden; }
-    #room-title { display:flex; align-items:center; gap:0.4rem; white-space:nowrap; flex-shrink:0; }
-    #room-name-text { font-weight:600; color:#007acc; font-size:0.95rem; }
-    .host-badge { font-size:0.68rem; background:rgba(0,122,204,0.15); color:#007acc; border:1px solid rgba(0,122,204,0.35); border-radius:3px; padding:1px 5px; font-weight:600; }
-    .sep { width:1px; height:22px; background:#3c3c3c; flex-shrink:0; }
-    #users-row { display:flex; align-items:center; gap:4px; min-width:0; }
-    .avatar { width:26px; height:26px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:0.68rem; font-weight:700; color:#1e1e1e; flex-shrink:0; position:relative; cursor:default; user-select:none; }
-    .avatar::after { content:attr(data-tip); position:absolute; top:calc(100% + 6px); left:50%; transform:translateX(-50%); background:#3c3c3c; color:#d4d4d4; font-size:0.72rem; font-family:inherit; font-weight:400; padding:2px 7px; border-radius:3px; white-space:nowrap; pointer-events:none; opacity:0; transition:opacity 0.1s; z-index:50; }
-    .avatar:hover::after { opacity:1; }
-    #user-count { font-size:0.78rem; color:#6a6a6a; white-space:nowrap; flex-shrink:0; }
-    .spacer { flex:1; min-width:0.5rem; }
-    #lang-select { background:#1e1e1e; color:#d4d4d4; border:1px solid #3c3c3c; border-radius:4px; padding:0.25rem 0.5rem; font-size:0.82rem; cursor:pointer; flex-shrink:0; }
-    #lang-select:focus { outline:none; border-color:#007acc; }
-    #copy-btn { background:#2d2d2d; color:#d4d4d4; border:1px solid #3c3c3c; border-radius:4px; padding:0.25rem 0.7rem; font-size:0.82rem; cursor:pointer; white-space:nowrap; flex-shrink:0; transition:border-color 0.15s,color 0.15s; }
-    #copy-btn:hover { background:#383838; border-color:#007acc; }
-    #copy-btn.copied { color:#4ec9b0; border-color:#4ec9b0; }
+    /* ── Top bar ─────────────────────────────────────────────── */
+    #topbar {
+      flex-shrink: 0;
+      height: var(--topbar-h);
+      background: var(--bg2);
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+      padding: 0 1rem;
+      overflow: hidden;
+    }
 
-    /* File tab bar */
-    #tabbar { flex-shrink:0; height:36px; background:#252526; border-bottom:1px solid #1e1e1e; display:flex; align-items:stretch; overflow-x:auto; overflow-y:hidden; scrollbar-width:thin; scrollbar-color:#3c3c3c transparent; }
-    #tabbar::-webkit-scrollbar { height:3px; }
-    #tabbar::-webkit-scrollbar-thumb { background:#3c3c3c; }
-    .tab { display:flex; align-items:center; gap:0.3rem; padding:0 0.75rem; min-width:90px; max-width:160px; border-right:1px solid #1e1e1e; cursor:pointer; color:#8a8a8a; font-size:0.8rem; white-space:nowrap; position:relative; user-select:none; flex-shrink:0; transition:background 0.1s,color 0.1s; }
-    .tab:hover { background:#2a2d2e; color:#d4d4d4; }
-    .tab.active { background:#1e1e1e; color:#d4d4d4; border-top:1px solid #007acc; margin-top:-1px; }
-    .tab-icon { font-size:0.85rem; flex-shrink:0; }
-    .tab-name { flex:1; overflow:hidden; text-overflow:ellipsis; outline:none; }
-    .tab-name[contenteditable="true"] { background:#1e1e1e; border:1px solid #007acc; border-radius:2px; padding:0 3px; cursor:text; min-width:60px; }
-    .tab-close { width:16px; height:16px; display:none; align-items:center; justify-content:center; border-radius:3px; font-size:0.75rem; flex-shrink:0; color:#6a6a6a; }
-    .tab:hover .tab-close, .tab.active .tab-close { display:flex; }
-    .tab-close:hover { background:#555; color:#fff; }
-    #new-file-btn { display:flex; align-items:center; justify-content:center; width:36px; cursor:pointer; color:#6a6a6a; font-size:1.1rem; flex-shrink:0; transition:color 0.1s,background 0.1s; }
-    #new-file-btn:hover { color:#d4d4d4; background:#2a2d2e; }
+    /* Logo */
+    .topbar-logo {
+      display: flex;
+      align-items: center;
+      gap: 0.45rem;
+      flex-shrink: 0;
+      text-decoration: none;
+    }
+    .topbar-logo-icon {
+      width: 28px;
+      height: 28px;
+      background: linear-gradient(135deg, var(--accent) 0%, #9e6bff 100%);
+      border-radius: 7px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.85rem;
+    }
+    .topbar-logo-name {
+      font-weight: 700;
+      font-size: 0.95rem;
+      color: var(--text);
+    }
 
-    /* Editor */
-    #editor-wrap { flex:1; overflow:hidden; display:flex; flex-direction:column; min-height:0; }
-    .cm-editor { height:100% !important; font-size:14px !important; }
-    .cm-scroller { overflow:auto !important; font-family:'Fira Code','Cascadia Code','Consolas','Menlo',monospace !important; }
+    .topbar-sep { width: 1px; height: 24px; background: var(--border); flex-shrink: 0; }
 
-    /* Status bar */
-    #statusbar { flex-shrink:0; height:22px; background:#007acc; display:flex; align-items:center; padding:0 0.9rem; gap:1.25rem; font-size:0.72rem; color:#fff; }
-    #status-conn.disconnected { color:#f48771; }
+    /* Room pill */
+    #room-pill {
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+      background: var(--bg3);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 0.25rem 0.75rem;
+      flex-shrink: 0;
+    }
+    #room-pill-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--green); box-shadow: 0 0 6px var(--green); flex-shrink: 0; }
+    #room-name-text { font-size: 0.82rem; font-weight: 600; color: var(--text); }
+    .host-badge {
+      font-size: 0.67rem;
+      background: rgba(47,129,247,0.15);
+      color: var(--accent2);
+      border: 1px solid rgba(47,129,247,0.3);
+      border-radius: 12px;
+      padding: 1px 7px;
+      font-weight: 600;
+    }
 
-    /* Overlay */
-    #overlay { display:none; position:fixed; inset:0; background:rgba(0,0,0,0.65); z-index:200; align-items:center; justify-content:center; }
-    #overlay.show { display:flex; }
-    #overlay-box { background:#252526; border:1px solid #f48771; border-radius:8px; padding:2rem 2.5rem; text-align:center; max-width:380px; }
-    #overlay-box h2 { color:#f48771; margin-bottom:0.5rem; }
-    #overlay-box p { color:#9a9a9a; margin-bottom:1.25rem; font-size:0.9rem; }
-    #overlay-box a { color:#007acc; text-decoration:none; font-size:0.9rem; }
+    /* Users */
+    #users-row { display: flex; align-items: center; gap: 3px; min-width: 0; }
+    .avatar {
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.72rem;
+      font-weight: 700;
+      color: #0d1117;
+      flex-shrink: 0;
+      cursor: default;
+      user-select: none;
+      position: relative;
+      border: 2px solid var(--bg2);
+      margin-left: -6px;
+      transition: margin 0.15s;
+    }
+    #users-row .avatar:first-child { margin-left: 0; }
+    #users-row:hover .avatar { margin-left: 0; }
+    .avatar::after {
+      content: attr(data-tip);
+      position: absolute;
+      top: calc(100% + 8px);
+      left: 50%;
+      transform: translateX(-50%);
+      background: var(--bg3);
+      border: 1px solid var(--border);
+      color: var(--text);
+      font-size: 0.72rem;
+      font-family: inherit;
+      font-weight: 500;
+      padding: 3px 8px;
+      border-radius: 6px;
+      white-space: nowrap;
+      pointer-events: none;
+      opacity: 0;
+      transition: opacity 0.12s;
+      z-index: 100;
+    }
+    .avatar:hover::after { opacity: 1; }
+    .avatar.me { border-color: rgba(255,255,255,0.5); }
 
-    /* New-file dialog */
-    #new-file-dialog { display:none; position:fixed; inset:0; background:rgba(0,0,0,0.5); z-index:300; align-items:center; justify-content:center; }
-    #new-file-dialog.show { display:flex; }
-    #new-file-box { background:#252526; border:1px solid #3c3c3c; border-radius:8px; padding:1.5rem; min-width:320px; }
-    #new-file-box h3 { margin-bottom:1rem; font-size:0.95rem; color:#d4d4d4; }
-    #new-file-box input { width:100%; padding:0.5rem 0.75rem; background:#1e1e1e; border:1px solid #3c3c3c; border-radius:4px; color:#d4d4d4; font-size:0.9rem; margin-bottom:1rem; }
-    #new-file-box input:focus { outline:none; border-color:#007acc; }
-    .dialog-btns { display:flex; gap:0.5rem; justify-content:flex-end; }
-    .dialog-btns button { padding:0.4rem 1rem; border-radius:4px; border:1px solid #3c3c3c; cursor:pointer; font-size:0.85rem; }
-    .btn-cancel { background:#2d2d2d; color:#d4d4d4; }
-    .btn-cancel:hover { background:#383838; }
-    .btn-confirm { background:#007acc; color:#fff; border-color:#007acc; }
-    .btn-confirm:hover { background:#0096e0; }
+    #user-count { font-size: 0.75rem; color: var(--text3); white-space: nowrap; flex-shrink: 0; margin-left: 0.5rem; }
 
-    /* Splash */
-    #splash { position:fixed; inset:0; background:#1e1e1e; display:flex; align-items:center; justify-content:center; z-index:100; font-size:0.9rem; color:#6a6a6a; }
+    .spacer { flex: 1; min-width: 0.25rem; }
+
+    /* Lang selector */
+    #lang-select {
+      background: var(--bg3);
+      color: var(--text);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 0.3rem 0.6rem;
+      font-size: 0.8rem;
+      font-family: inherit;
+      cursor: pointer;
+      flex-shrink: 0;
+      transition: border-color 0.15s;
+    }
+    #lang-select:focus { outline: none; border-color: var(--accent); }
+    #lang-select:hover { border-color: var(--border2); }
+
+    /* Copy button */
+    #copy-btn {
+      display: flex;
+      align-items: center;
+      gap: 0.35rem;
+      background: var(--accent);
+      color: #fff;
+      border: none;
+      border-radius: 8px;
+      padding: 0.35rem 0.85rem;
+      font-size: 0.8rem;
+      font-weight: 600;
+      font-family: inherit;
+      cursor: pointer;
+      flex-shrink: 0;
+      transition: background 0.15s, box-shadow 0.15s;
+      white-space: nowrap;
+    }
+    #copy-btn:hover { background: var(--accent2); box-shadow: 0 2px 10px rgba(47,129,247,0.3); }
+    #copy-btn.copied { background: #238636; box-shadow: 0 2px 10px rgba(35,134,54,0.3); }
+
+    /* ── File tab bar ────────────────────────────────────────── */
+    #tabbar {
+      flex-shrink: 0;
+      height: var(--tabbar-h);
+      background: var(--bg2);
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: stretch;
+      overflow-x: auto;
+      overflow-y: hidden;
+      scrollbar-width: thin;
+      scrollbar-color: var(--border) transparent;
+    }
+    #tabbar::-webkit-scrollbar { height: 3px; }
+    #tabbar::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+
+    .tab {
+      display: flex;
+      align-items: center;
+      gap: 0.3rem;
+      padding: 0 0.85rem;
+      min-width: 90px;
+      max-width: 160px;
+      border-right: 1px solid var(--border);
+      cursor: pointer;
+      color: var(--text2);
+      font-size: 0.78rem;
+      white-space: nowrap;
+      position: relative;
+      user-select: none;
+      flex-shrink: 0;
+      transition: background 0.1s, color 0.1s;
+    }
+    .tab:hover { background: var(--bg3); color: var(--text); }
+    .tab.active {
+      background: var(--bg);
+      color: var(--text);
+    }
+    .tab.active::after {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 2px;
+      background: var(--accent);
+      border-radius: 0 0 2px 2px;
+    }
+
+    .tab-icon { font-size: 0.82rem; flex-shrink: 0; }
+    .tab-name { flex: 1; overflow: hidden; text-overflow: ellipsis; outline: none; }
+    .tab-name[contenteditable="true"] {
+      background: var(--bg2);
+      border: 1px solid var(--accent);
+      border-radius: 3px;
+      padding: 0 4px;
+      cursor: text;
+      min-width: 60px;
+    }
+
+    .tab-close {
+      width: 16px;
+      height: 16px;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      border-radius: 4px;
+      font-size: 0.75rem;
+      flex-shrink: 0;
+      color: var(--text3);
+      transition: background 0.1s, color 0.1s;
+    }
+    .tab:hover .tab-close, .tab.active .tab-close { display: flex; }
+    .tab-close:hover { background: var(--border2); color: var(--text); }
+
+    #new-file-btn {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 38px;
+      cursor: pointer;
+      color: var(--text3);
+      font-size: 1rem;
+      flex-shrink: 0;
+      transition: color 0.1s, background 0.1s;
+    }
+    #new-file-btn:hover { color: var(--text); background: var(--bg3); }
+
+    /* ── Editor ──────────────────────────────────────────────── */
+    #editor-wrap { flex: 1; overflow: hidden; display: flex; flex-direction: column; min-height: 0; }
+    .cm-editor { height: 100% !important; font-size: 14px !important; background: var(--bg) !important; }
+    .cm-scroller { overflow: auto !important; font-family: 'Fira Code', 'Cascadia Code', 'Consolas', 'Menlo', monospace !important; }
+
+    /* ── Status bar ──────────────────────────────────────────── */
+    #statusbar {
+      flex-shrink: 0;
+      height: var(--status-h);
+      background: var(--accent);
+      display: flex;
+      align-items: center;
+      padding: 0 1rem;
+      gap: 1.25rem;
+      font-size: 0.7rem;
+      color: rgba(255,255,255,0.9);
+      font-weight: 500;
+    }
+    #status-conn { margin-left: auto; }
+    #status-conn.disconnected { color: #ffa0a0; }
+
+    .status-item {
+      display: flex;
+      align-items: center;
+      gap: 0.3rem;
+      opacity: 0.85;
+    }
+
+    /* Footer credit in status bar */
+    .status-credit {
+      margin-left: auto;
+      font-size: 0.67rem;
+      opacity: 0.65;
+      white-space: nowrap;
+    }
+
+    /* ── Overlay (error / disconnected) ──────────────────────── */
+    #overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.75);
+      backdrop-filter: blur(4px);
+      z-index: 200;
+      align-items: center;
+      justify-content: center;
+    }
+    #overlay.show { display: flex; }
+    #overlay-box {
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 2.5rem;
+      text-align: center;
+      max-width: 400px;
+      width: 90%;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+    }
+    #overlay-box .overlay-icon { font-size: 2.5rem; margin-bottom: 1rem; }
+    #overlay-box h2 { color: var(--red); margin-bottom: 0.6rem; font-size: 1.15rem; }
+    #overlay-box p { color: var(--text2); margin-bottom: 1.5rem; font-size: 0.875rem; line-height: 1.5; }
+    #overlay-box a {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+      color: #fff;
+      background: var(--accent);
+      text-decoration: none;
+      font-size: 0.875rem;
+      font-weight: 600;
+      padding: 0.6rem 1.25rem;
+      border-radius: 8px;
+      transition: background 0.15s;
+    }
+    #overlay-box a:hover { background: var(--accent2); }
+
+    /* ── New-file dialog ─────────────────────────────────────── */
+    #new-file-dialog {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.6);
+      backdrop-filter: blur(4px);
+      z-index: 300;
+      align-items: center;
+      justify-content: center;
+    }
+    #new-file-dialog.show { display: flex; }
+    #new-file-box {
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 1.75rem;
+      min-width: 340px;
+      width: 90%;
+      max-width: 400px;
+      box-shadow: 0 16px 48px rgba(0,0,0,0.5);
+    }
+    #new-file-box h3 {
+      margin-bottom: 0.3rem;
+      font-size: 1rem;
+      color: var(--text);
+    }
+    #new-file-box p {
+      font-size: 0.8rem;
+      color: var(--text2);
+      margin-bottom: 1.1rem;
+    }
+    #new-file-box input {
+      width: 100%;
+      padding: 0.6rem 0.85rem;
+      background: var(--bg3);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      color: var(--text);
+      font-size: 0.875rem;
+      font-family: inherit;
+      margin-bottom: 1.1rem;
+      transition: border-color 0.15s, box-shadow 0.15s;
+    }
+    #new-file-box input:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px rgba(47,129,247,0.15); }
+    #new-file-box input::placeholder { color: var(--text3); }
+
+    .dialog-btns { display: flex; gap: 0.5rem; justify-content: flex-end; }
+    .dialog-btns button {
+      padding: 0.5rem 1.1rem;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      cursor: pointer;
+      font-size: 0.85rem;
+      font-family: inherit;
+      font-weight: 500;
+      transition: background 0.12s, border-color 0.12s;
+    }
+    .btn-cancel { background: var(--bg3); color: var(--text2); }
+    .btn-cancel:hover { background: var(--bg4); color: var(--text); }
+    .btn-confirm { background: var(--accent); color: #fff; border-color: transparent; }
+    .btn-confirm:hover { background: var(--accent2); }
+
+    /* ── Splash ──────────────────────────────────────────────── */
+    #splash {
+      position: fixed;
+      inset: 0;
+      background: var(--bg);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 1rem;
+      z-index: 100;
+    }
+    #splash .splash-logo {
+      width: 52px;
+      height: 52px;
+      background: linear-gradient(135deg, var(--accent) 0%, #9e6bff 100%);
+      border-radius: 14px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.5rem;
+      box-shadow: 0 8px 24px rgba(47,129,247,0.3);
+      animation: pulse 1.5s ease-in-out infinite;
+    }
+    #splash p { font-size: 0.875rem; color: var(--text2); }
+    @keyframes pulse {
+      0%, 100% { box-shadow: 0 8px 24px rgba(47,129,247,0.3); }
+      50%       { box-shadow: 0 8px 36px rgba(47,129,247,0.55); }
+    }
   </style>
 </head>
 <body>
 <div id="app">
+
+  <!-- Top bar -->
   <div id="topbar">
-    <div id="room-title"><span id="room-name-text">…</span></div>
-    <div class="sep"></div>
+    <a href="/" class="topbar-logo" title="Back to home">
+      <div class="topbar-logo-icon">⚡</div>
+      <span class="topbar-logo-name">CodeShare</span>
+    </a>
+
+    <div class="topbar-sep"></div>
+
+    <div id="room-pill">
+      <div id="room-pill-dot"></div>
+      <span id="room-name-text">…</span>
+    </div>
+
+    <div class="topbar-sep"></div>
+
     <div id="users-row"></div>
     <span id="user-count"></span>
+
     <div class="spacer"></div>
+
     <select id="lang-select" onchange="onLangChange(this.value)">
-      <option value="python">Python</option>
-      <option value="javascript">JavaScript</option>
-      <option value="java">Java</option>
-      <option value="cpp">C++</option>
-      <option value="text">Plain Text</option>
+      <option value="python">🐍 Python</option>
+      <option value="javascript">🟨 JavaScript</option>
+      <option value="java">☕ Java</option>
+      <option value="cpp">⚙️ C++</option>
+      <option value="text">📄 Plain Text</option>
     </select>
-    <button id="copy-btn" onclick="copyInviteLink()">⎘ Copy Invite Link</button>
+
+    <button id="copy-btn" onclick="copyInviteLink()">
+      <span>🔗</span>
+      <span id="copy-btn-label">Invite Link</span>
+    </button>
   </div>
 
+  <!-- File tabs -->
   <div id="tabbar">
-    <div id="new-file-btn" title="New file" onclick="openNewFileDialog()">＋</div>
+    <div id="new-file-btn" title="New file (Ctrl+N)" onclick="openNewFileDialog()">＋</div>
   </div>
 
+  <!-- Editor -->
   <div id="editor-wrap"></div>
 
+  <!-- Status bar -->
   <div id="statusbar">
-    <span id="status-file">—</span>
-    <span id="status-lang">—</span>
-    <span id="status-conn">Connecting…</span>
+    <span class="status-item">📄 <span id="status-file">—</span></span>
+    <span class="status-item">   <span id="status-lang">—</span></span>
+    <span class="status-credit">Made with ♥ by Kasam Thapa Magar</span>
+    <span id="status-conn" class="status-item">● Connecting…</span>
   </div>
 </div>
 
+<!-- Error / disconnect overlay -->
 <div id="overlay">
   <div id="overlay-box">
+    <div class="overlay-icon">🔌</div>
     <h2 id="overlay-title">Disconnected</h2>
-    <p id="overlay-msg">You have been disconnected.</p>
-    <a href="/">← Back to home</a>
+    <p id="overlay-msg">You have been disconnected from the room.</p>
+    <a href="/">← Back to Home</a>
   </div>
 </div>
 
+<!-- New file dialog -->
 <div id="new-file-dialog">
   <div id="new-file-box">
-    <h3>New File</h3>
-    <input id="new-file-name" type="text" placeholder="e.g. utils.py" autocomplete="off" />
+    <h3>Create New File</h3>
+    <p>Give your file a name with an extension, e.g. <code style="color:var(--accent2);font-size:0.8em">utils.py</code></p>
+    <input id="new-file-name" type="text" placeholder="e.g. utils.py" autocomplete="off" spellcheck="false" />
     <div class="dialog-btns">
       <button class="btn-cancel" onclick="closeNewFileDialog()">Cancel</button>
-      <button class="btn-confirm" onclick="confirmNewFile()">Create</button>
+      <button class="btn-confirm" onclick="confirmNewFile()">Create File</button>
     </div>
   </div>
 </div>
 
-<div id="splash">Connecting to room…</div>
+<!-- Splash -->
+<div id="splash">
+  <div class="splash-logo">⚡</div>
+  <p>Connecting to room…</p>
+</div>
 
 <script src="/socket.io/socket.io.js"></script>
 <script src="/cm.bundle.js"></script>
@@ -152,6 +549,7 @@ const langComp     = new Compartment();
 
 const LANG_LABELS = { python:'Python', javascript:'JavaScript', java:'Java', cpp:'C++', text:'Plain Text' };
 const LANG_ICONS  = { python:'🐍', javascript:'🟨', java:'☕', cpp:'⚙️', text:'📄' };
+const LANG_SELECT_VALUES = { python:'python', javascript:'javascript', java:'java', cpp:'cpp', text:'text' };
 
 function getLangExt(lang) {
   switch(lang) {
@@ -223,7 +621,7 @@ function renderTabs() {
 
     const closeBtn = document.createElement('span');
     closeBtn.className = 'tab-close';
-    closeBtn.textContent = '×';
+    closeBtn.innerHTML = '✕';
     closeBtn.title = files.length > 1 ? 'Delete file' : 'Cannot delete last file';
     closeBtn.addEventListener('click', (e) => { e.stopPropagation(); deleteFile(file.id); });
 
@@ -250,7 +648,7 @@ function startRename(fileId, nameEl) {
     nameEl.removeEventListener('keydown', onKey);
   }
   function onKey(e) {
-    if (e.key === 'Enter') { e.preventDefault(); nameEl.blur(); }
+    if (e.key === 'Enter')  { e.preventDefault(); nameEl.blur(); }
     if (e.key === 'Escape') { nameEl.textContent = original; nameEl.blur(); }
   }
   nameEl.addEventListener('blur', commit);
@@ -284,14 +682,13 @@ function renderUsers(users) {
   row.innerHTML = '';
   users.forEach((u) => {
     const av = document.createElement('div');
-    av.className = 'avatar';
+    av.className = 'avatar' + (currentUser && u.id === currentUser.id ? ' me' : '');
     av.style.background = u.color;
     av.textContent = (u.username||'?')[0].toUpperCase();
     av.setAttribute('data-tip', u.username + (u.isHost ? ' 👑' : ''));
-    if (currentUser && u.id === currentUser.id) { av.style.outline = '2px solid #fff'; av.style.outlineOffset = '1px'; }
     row.appendChild(av);
   });
-  document.getElementById('user-count').textContent = users.length + ' user' + (users.length !== 1 ? 's' : '');
+  document.getElementById('user-count').textContent = users.length + ' online';
 }
 
 function updateStatus() {
@@ -302,7 +699,7 @@ function updateStatus() {
 
 function setConnStatus(text, isErr) {
   const el = document.getElementById('status-conn');
-  el.textContent = text;
+  el.textContent = (isErr ? '● ' : '● ') + text;
   el.classList.toggle('disconnected', isErr);
 }
 
@@ -310,7 +707,7 @@ function setConnStatus(text, isErr) {
 function openNewFileDialog() {
   document.getElementById('new-file-name').value = '';
   document.getElementById('new-file-dialog').classList.add('show');
-  document.getElementById('new-file-name').focus();
+  setTimeout(() => document.getElementById('new-file-name').focus(), 50);
 }
 function closeNewFileDialog() { document.getElementById('new-file-dialog').classList.remove('show'); }
 function confirmNewFile() {
@@ -320,22 +717,30 @@ function confirmNewFile() {
   closeNewFileDialog();
 }
 document.getElementById('new-file-name').addEventListener('keydown', (e) => {
-  if (e.key === 'Enter') confirmNewFile();
+  if (e.key === 'Enter')  confirmNewFile();
   if (e.key === 'Escape') closeNewFileDialog();
+});
+document.getElementById('new-file-dialog').addEventListener('click', (e) => {
+  if (e.target === document.getElementById('new-file-dialog')) closeNewFileDialog();
 });
 
 function showOverlay(title, msg) {
   document.getElementById('overlay-title').textContent = title;
-  document.getElementById('overlay-msg').textContent = msg;
+  document.getElementById('overlay-msg').textContent   = msg;
   document.getElementById('overlay').classList.add('show');
 }
 
 function addHostBadge() {
   if (document.querySelector('.host-badge')) return;
   const b = document.createElement('span');
-  b.className = 'host-badge'; b.textContent = 'host';
-  document.getElementById('room-title').appendChild(b);
+  b.className = 'host-badge'; b.textContent = '👑 host';
+  document.getElementById('room-pill').appendChild(b);
 }
+
+// ── Keyboard shortcuts ────────────────────────────────────────────────────
+document.addEventListener('keydown', (e) => {
+  if ((e.ctrlKey || e.metaKey) && e.key === 'n') { e.preventDefault(); openNewFileDialog(); }
+});
 
 // ── Socket ────────────────────────────────────────────────────────────────
 const socket = io();
@@ -347,7 +752,7 @@ socket.on('connect', () => {
 
 socket.on('room-state', ({ files: sf, users, currentUser: me }) => {
   currentUser = me; files = sf; activeFileId = files[0]?.id ?? null;
-  document.title = 'CodeShare — ' + roomName;
+  document.title = roomName + ' — CodeShare';
   document.getElementById('room-name-text').textContent = roomName;
   if (me.isHost) addHostBadge();
   const first = files[0];
@@ -367,7 +772,11 @@ socket.on('language-change', ({ fileId, language }) => {
   const file = files.find(f => f.id === fileId);
   if (!file) return;
   file.language = language;
-  if (fileId === activeFileId) { applyLang(language); document.getElementById('lang-select').value = language; updateStatus(); }
+  if (fileId === activeFileId) {
+    applyLang(language);
+    document.getElementById('lang-select').value = language;
+    updateStatus();
+  }
   renderTabs();
 });
 
@@ -397,18 +806,28 @@ socket.on('file-deleted', ({ fileId }) => {
 socket.on('user-joined', ({ users }) => renderUsers(users));
 socket.on('user-left', ({ users, newHostId }) => {
   renderUsers(users);
-  if (newHostId === socket.id && currentUser && !currentUser.isHost) { currentUser.isHost = true; addHostBadge(); }
+  if (newHostId === socket.id && currentUser && !currentUser.isHost) {
+    currentUser.isHost = true; addHostBadge();
+  }
 });
-socket.on('error', ({ message }) => showOverlay('Access Denied', message));
-socket.on('disconnect', () => { setConnStatus('Disconnected', true); showOverlay('Disconnected', 'Your connection to the room was lost.'); });
-socket.on('connect_error', () => setConnStatus('Connection error', true));
+socket.on('error',          ({ message }) => showOverlay('Access Denied', message));
+socket.on('disconnect',     ()            => { setConnStatus('Disconnected', true); showOverlay('Disconnected', 'Your connection to the room was lost. Please go back and rejoin.'); });
+socket.on('connect_error',  ()            => setConnStatus('Connection error', true));
 
-// ── Public API for inline handlers ────────────────────────────────────────
-window.onLangChange        = (lang) => socket.emit('language-change', { roomName, fileId: activeFileId, language: lang });
-window.copyInviteLink      = () => navigator.clipboard.writeText(location.origin + '/room/' + encodeURIComponent(roomName)).then(() => { const b = document.getElementById('copy-btn'); b.textContent='✓ Copied!'; b.classList.add('copied'); setTimeout(()=>{ b.textContent='⎘ Copy Invite Link'; b.classList.remove('copied'); }, 2000); });
-window.openNewFileDialog   = openNewFileDialog;
-window.closeNewFileDialog  = closeNewFileDialog;
-window.confirmNewFile      = confirmNewFile;
+// ── Public API ────────────────────────────────────────────────────────────
+window.onLangChange       = (lang) => socket.emit('language-change', { roomName, fileId: activeFileId, language: lang });
+window.copyInviteLink     = () => {
+  navigator.clipboard.writeText(location.origin + '/room/' + encodeURIComponent(roomName)).then(() => {
+    const btn = document.getElementById('copy-btn');
+    const lbl = document.getElementById('copy-btn-label');
+    btn.classList.add('copied');
+    lbl.textContent = 'Copied!';
+    setTimeout(() => { btn.classList.remove('copied'); lbl.textContent = 'Invite Link'; }, 2000);
+  });
+};
+window.openNewFileDialog  = openNewFileDialog;
+window.closeNewFileDialog = closeNewFileDialog;
+window.confirmNewFile     = confirmNewFile;
 </script>
 </body>
 </html>
