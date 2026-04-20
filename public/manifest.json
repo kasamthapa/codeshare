@@ -1,17 +1,23 @@
 {
   "name": "CodeShare",
   "short_name": "CodeShare",
-  "description": "Real-time collaborative code editor for classrooms",
+  "description": "Real-time collaborative code sharing for classrooms",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#0d1117",
-  "theme_color": "#161b22",
+  "theme_color": "#0d1117",
   "icons": [
     {
-      "src": "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='22' fill='%232f81f7'/><text y='.9em' font-size='72' x='14'>⚡</text></svg>",
+      "src": "/icon.svg",
       "sizes": "any",
       "type": "image/svg+xml",
-      "purpose": "any maskable"
+      "purpose": "any"
+    },
+    {
+      "src": "/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "maskable"
     }
   ]
 }

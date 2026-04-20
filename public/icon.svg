@@ -1,0 +1,59 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <!-- Background with rounded corners -->
+  <defs>
+    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#1a1f2e;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#0d1117;stop-opacity:1" />
+    </linearGradient>
+    <linearGradient id="boltGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#58a6ff;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#9e6bff;stop-opacity:1" />
+    </linearGradient>
+    <linearGradient id="glowGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#2f81f7;stop-opacity:0.25" />
+      <stop offset="100%" style="stop-color:#9e6bff;stop-opacity:0.1" />
+    </linearGradient>
+    <clipPath id="roundRect">
+      <rect width="512" height="512" rx="115" ry="115"/>
+    </clipPath>
+  </defs>
+
+  <!-- Background -->
+  <rect width="512" height="512" rx="115" ry="115" fill="url(#bgGrad)"/>
+
+  <!-- Subtle glow circle behind bolt -->
+  <circle cx="256" cy="245" r="160" fill="url(#glowGrad)"/>
+
+  <!-- Subtle grid lines -->
+  <g clip-path="url(#roundRect)" opacity="0.07" stroke="#2f81f7" stroke-width="1.5">
+    <line x1="0" y1="128" x2="512" y2="128"/>
+    <line x1="0" y1="256" x2="512" y2="256"/>
+    <line x1="0" y1="384" x2="512" y2="384"/>
+    <line x1="128" y1="0" x2="128" y2="512"/>
+    <line x1="256" y1="0" x2="256" y2="512"/>
+    <line x1="384" y1="0" x2="384" y2="512"/>
+  </g>
+
+  <!-- Lightning bolt — centered -->
+  <path d="M295 80 L180 275 L245 275 L217 432 L332 237 L267 237 Z"
+        fill="url(#boltGrad)"
+        filter="url(#glow)"/>
+
+  <!-- Glow filter for bolt -->
+  <defs>
+    <filter id="glow" x="-30%" y="-30%" width="160%" height="160%">
+      <feGaussianBlur stdDeviation="8" result="coloredBlur"/>
+      <feMerge>
+        <feMergeNode in="coloredBlur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+
+  <!-- Border ring -->
+  <rect width="512" height="512" rx="115" ry="115"
+        fill="none"
+        stroke="url(#boltGrad)"
+        stroke-width="6"
+        opacity="0.3"/>
+</svg>
