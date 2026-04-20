@@ -195,16 +195,18 @@
     #qr-btn {
       display: flex;
       align-items: center;
-      justify-content: center;
-      width: 34px;
-      height: 34px;
+      gap: 0.35rem;
       background: var(--bg3);
       color: var(--text2);
       border: 1px solid var(--border);
       border-radius: 8px;
-      font-size: 1rem;
+      padding: 0.35rem 0.75rem;
+      font-size: 0.8rem;
+      font-weight: 600;
+      font-family: inherit;
       cursor: pointer;
       flex-shrink: 0;
+      white-space: nowrap;
       transition: border-color 0.15s, color 0.15s, background 0.15s;
     }
     #qr-btn:hover { border-color: var(--border2); color: var(--text); background: var(--bg4); }
@@ -601,7 +603,14 @@
       <option value="text">📄 Plain Text</option>
     </select>
 
-    <button id="qr-btn" onclick="openQrDialog()" title="Show QR code for students">⬛</button>
+    <button id="qr-btn" onclick="openQrDialog()" title="Show QR code — students scan to join">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/>
+        <rect x="5" y="5" width="3" height="3" fill="currentColor" stroke="none"/><rect x="16" y="5" width="3" height="3" fill="currentColor" stroke="none"/><rect x="5" y="16" width="3" height="3" fill="currentColor" stroke="none"/>
+        <path d="M14 14h3v3h-3z" fill="currentColor" stroke="none"/><path d="M17 17h4"/><path d="M21 14v3"/><path d="M17 21h4v-1"/>
+      </svg>
+      <span>QR Code</span>
+    </button>
 
     <button id="copy-btn" onclick="copyInviteLink()">
       <span>🔗</span>
