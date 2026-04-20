@@ -349,6 +349,49 @@
     }
     #overlay-box a:hover { background: var(--accent2); }
 
+    /* ── Delete confirm dialog ───────────────────────────────── */
+    #delete-dialog {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.6);
+      backdrop-filter: blur(4px);
+      z-index: 300;
+      align-items: center;
+      justify-content: center;
+    }
+    #delete-dialog.show { display: flex; }
+    #delete-box {
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 1.75rem;
+      min-width: 340px;
+      width: 90%;
+      max-width: 400px;
+      box-shadow: 0 16px 48px rgba(0,0,0,0.5);
+      animation: dialogIn 0.15s ease;
+    }
+    @keyframes dialogIn {
+      from { opacity: 0; transform: scale(0.96) translateY(6px); }
+      to   { opacity: 1; transform: scale(1)    translateY(0);   }
+    }
+    #delete-box .delete-icon {
+      width: 40px; height: 40px;
+      background: var(--red-bg);
+      border: 1px solid rgba(248,81,73,0.25);
+      border-radius: 10px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.1rem;
+      margin-bottom: 1rem;
+    }
+    #delete-box h3 { font-size: 0.95rem; color: var(--text); margin-bottom: 0.35rem; }
+    #delete-box p  { font-size: 0.82rem; color: var(--text2); line-height: 1.5; margin-bottom: 1.25rem; }
+    #delete-box p strong { color: var(--text); }
+    #delete-box .dialog-btns button { padding: 0.5rem 1.1rem; border-radius: 8px; border: 1px solid var(--border); cursor: pointer; font-size: 0.85rem; font-family: inherit; font-weight: 500; transition: background 0.12s, border-color 0.12s; }
+    .btn-delete { background: var(--red); color: #fff !important; border-color: transparent !important; }
+    .btn-delete:hover { background: #ff6b63 !important; }
+
     /* ── New-file dialog ─────────────────────────────────────── */
     #new-file-dialog {
       display: none;
@@ -521,6 +564,19 @@
   </div>
 </div>
 
+<!-- Delete confirm dialog -->
+<div id="delete-dialog">
+  <div id="delete-box">
+    <div class="delete-icon">🗑️</div>
+    <h3>Delete File?</h3>
+    <p>Are you sure you want to delete <strong id="delete-file-name"></strong>? This action cannot be undone.</p>
+    <div class="dialog-btns">
+      <button class="btn-cancel" onclick="closeDeleteDialog()">Cancel</button>
+      <button class="btn-delete" onclick="confirmDeleteFile()">Delete File</button>
+    </div>
+  </div>
+</div>
+
 <!-- Splash -->
 <div id="splash">
   <div class="splash-logo">⚡</div>
@@ -670,11 +726,31 @@ function switchToFile(fileId) {
   updateStatus();
 }
 
+let pendingDeleteId = null;
+
 function deleteFile(fileId) {
   if (files.length <= 1) return;
-  if (!confirm('Delete this file? This cannot be undone.')) return;
-  socket.emit('file-delete', { roomName, fileId });
+  const file = files.find(f => f.id === fileId);
+  if (!file) return;
+  pendingDeleteId = fileId;
+  document.getElementById('delete-file-name').textContent = file.name;
+  document.getElementById('delete-dialog').classList.add('show');
 }
+function closeDeleteDialog() {
+  pendingDeleteId = null;
+  document.getElementById('delete-dialog').classList.remove('show');
+}
+function confirmDeleteFile() {
+  if (!pendingDeleteId) return;
+  socket.emit('file-delete', { roomName, fileId: pendingDeleteId });
+  closeDeleteDialog();
+}
+document.getElementById('delete-dialog').addEventListener('click', (e) => {
+  if (e.target === document.getElementById('delete-dialog')) closeDeleteDialog();
+});
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape' && document.getElementById('delete-dialog').classList.contains('show')) closeDeleteDialog();
+});
 
 // ── Users ─────────────────────────────────────────────────────────────────
 function renderUsers(users) {
