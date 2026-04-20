@@ -1,0 +1,29 @@
+# fly.toml — Fly.io deployment config
+# Deploy with: fly launch (first time) or fly deploy (updates)
+
+app = "codeshare-app"   # ← fly launch will replace this with your chosen app name
+primary_region = "sin"  # Singapore — closest to Nepal. Change if needed:
+                         # sin=Singapore, bom=Mumbai, nrt=Tokyo, lax=Los Angeles
+
+[build]
+  # Uses the Dockerfile in the project root
+
+[env]
+  NODE_ENV = "production"
+  PORT     = "3000"
+
+[http_service]
+  internal_port       = 3000
+  force_https         = true          # redirect all HTTP → HTTPS automatically
+  auto_stop_machines  = false         # keep running even with no traffic (classroom use!)
+  auto_start_machines = true
+  min_machines_running = 1            # always keep at least 1 machine alive
+
+  [http_service.concurrency]
+    type       = "connections"
+    hard_limit = 200                  # max simultaneous connections per machine
+    soft_limit = 150
+
+[[vm]]
+  size = "shared-cpu-1x"   # smallest VM — free tier
+  memory = "256mb"

@@ -1,0 +1,28 @@
+{
+  "name": "codeshare",
+  "version": "1.0.0",
+  "description": "Real-time collaborative code editor — classroom ready",
+  "main": "server.js",
+  "engines": { "node": ">=18.0.0" },
+  "scripts": {
+    "start": "node server.js",
+    "build": "node build.js",
+    "prepare": "node build.js",
+    "dev": "node server.js"
+  },
+  "dependencies": {
+    "compression": "^1.8.1",
+    "express": "^4.18.2",
+    "helmet": "^8.1.0",
+    "socket.io": "^4.7.2"
+  },
+  "devDependencies": {
+    "@codemirror/lang-cpp": "^6.0.2",
+    "@codemirror/lang-java": "^6.0.1",
+    "@codemirror/lang-javascript": "^6.2.2",
+    "@codemirror/lang-python": "^6.1.6",
+    "@codemirror/theme-one-dark": "^6.1.2",
+    "codemirror": "^6.0.1",
+    "esbuild": "^0.20.0"
+  }
+}

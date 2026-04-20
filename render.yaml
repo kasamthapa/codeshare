@@ -1,0 +1,14 @@
+# render.yaml — Render.com deployment config
+# Sign up at render.com with GitHub (no credit card required)
+
+services:
+  - type: web
+    name: codeshare
+    runtime: node
+    buildCommand: npm install         # runs prepare → builds cm.bundle.js
+    startCommand: node server.js
+    healthCheckPath: /health          # Render pings this to know when app is ready
+
+    envVars:
+      - key: NODE_ENV
+        value: production

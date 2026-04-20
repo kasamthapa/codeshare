@@ -1,0 +1,585 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>CodeShare</title>
+  <style>
+    /* ── Reset & base ────────────────────────────────────────── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html, body {
+      height: 100%;
+      background: #1e1e1e;
+      color: #d4d4d4;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      overflow: hidden;
+    }
+
+    /* ── Full-screen flex column layout ─────────────────────── */
+    #app {
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+    }
+
+    /* ── Top bar ─────────────────────────────────────────────── */
+    #topbar {
+      flex-shrink: 0;
+      height: 44px;
+      background: #252526;
+      border-bottom: 1px solid #3c3c3c;
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      padding: 0 0.9rem;
+      overflow: hidden;
+    }
+
+    /* Room title + host badge */
+    #room-title {
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+      white-space: nowrap;
+      flex-shrink: 0;
+    }
+    #room-name-text {
+      font-weight: 600;
+      color: #007acc;
+      font-size: 0.95rem;
+    }
+    .host-badge {
+      font-size: 0.68rem;
+      background: rgba(0,122,204,0.15);
+      color: #007acc;
+      border: 1px solid rgba(0,122,204,0.35);
+      border-radius: 3px;
+      padding: 1px 5px;
+      font-weight: 600;
+    }
+
+    /* Thin divider */
+    .sep {
+      width: 1px;
+      height: 22px;
+      background: #3c3c3c;
+      flex-shrink: 0;
+    }
+
+    /* User avatars row */
+    #users-row {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      min-width: 0;
+    }
+    .avatar {
+      width: 26px;
+      height: 26px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.68rem;
+      font-weight: 700;
+      color: #1e1e1e;
+      flex-shrink: 0;
+      position: relative;
+      cursor: default;
+      user-select: none;
+    }
+    /* Tooltip on hover */
+    .avatar::after {
+      content: attr(data-tip);
+      position: absolute;
+      top: calc(100% + 6px);
+      left: 50%;
+      transform: translateX(-50%);
+      background: #3c3c3c;
+      color: #d4d4d4;
+      font-size: 0.72rem;
+      font-family: inherit;
+      font-weight: 400;
+      padding: 2px 7px;
+      border-radius: 3px;
+      white-space: nowrap;
+      pointer-events: none;
+      opacity: 0;
+      transition: opacity 0.1s;
+      z-index: 50;
+    }
+    .avatar:hover::after { opacity: 1; }
+
+    #user-count {
+      font-size: 0.78rem;
+      color: #6a6a6a;
+      white-space: nowrap;
+      flex-shrink: 0;
+    }
+
+    /* Push controls to the right */
+    .spacer { flex: 1; min-width: 0.5rem; }
+
+    /* Language selector */
+    #lang-select {
+      background: #1e1e1e;
+      color: #d4d4d4;
+      border: 1px solid #3c3c3c;
+      border-radius: 4px;
+      padding: 0.25rem 0.5rem;
+      font-size: 0.82rem;
+      cursor: pointer;
+      flex-shrink: 0;
+    }
+    #lang-select:focus { outline: none; border-color: #007acc; }
+
+    /* Copy invite link button */
+    #copy-btn {
+      background: #2d2d2d;
+      color: #d4d4d4;
+      border: 1px solid #3c3c3c;
+      border-radius: 4px;
+      padding: 0.25rem 0.7rem;
+      font-size: 0.82rem;
+      cursor: pointer;
+      white-space: nowrap;
+      flex-shrink: 0;
+      transition: border-color 0.15s, color 0.15s;
+    }
+    #copy-btn:hover          { background: #383838; border-color: #007acc; }
+    #copy-btn.copied         { color: #4ec9b0; border-color: #4ec9b0; }
+
+    /* ── Editor area ─────────────────────────────────────────── */
+    #editor-wrap {
+      flex: 1;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      min-height: 0;
+    }
+
+    /* CodeMirror fills the container */
+    .cm-editor {
+      height: 100% !important;
+      font-size: 14px !important;
+    }
+    .cm-scroller {
+      overflow: auto !important;
+      font-family: 'Fira Code', 'Cascadia Code', 'Consolas', 'Menlo', monospace !important;
+    }
+
+    /* ── Status bar (VS Code–style blue footer) ──────────────── */
+    #statusbar {
+      flex-shrink: 0;
+      height: 22px;
+      background: #007acc;
+      display: flex;
+      align-items: center;
+      padding: 0 0.9rem;
+      gap: 1.25rem;
+      font-size: 0.72rem;
+      color: #fff;
+    }
+    #status-conn.disconnected { color: #f48771; }
+
+    /* ── Full-screen overlay (error / disconnection) ─────────── */
+    #overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.65);
+      z-index: 200;
+      align-items: center;
+      justify-content: center;
+    }
+    #overlay.show { display: flex; }
+    #overlay-box {
+      background: #252526;
+      border: 1px solid #f48771;
+      border-radius: 8px;
+      padding: 2rem 2.5rem;
+      text-align: center;
+      max-width: 380px;
+    }
+    #overlay-box h2 { color: #f48771; margin-bottom: 0.5rem; }
+    #overlay-box p  { color: #9a9a9a; margin-bottom: 1.25rem; font-size: 0.9rem; }
+    #overlay-box a  { color: #007acc; text-decoration: none; font-size: 0.9rem; }
+    #overlay-box a:hover { text-decoration: underline; }
+
+    /* ── Connecting splash ───────────────────────────────────── */
+    #splash {
+      position: fixed;
+      inset: 0;
+      background: #1e1e1e;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 100;
+      font-size: 0.9rem;
+      color: #6a6a6a;
+    }
+  </style>
+</head>
+
+<body>
+<div id="app">
+
+  <!-- Top bar -->
+  <div id="topbar">
+    <div id="room-title">
+      <span id="room-name-text">…</span>
+    </div>
+
+    <div class="sep"></div>
+
+    <div id="users-row"></div>
+    <span id="user-count"></span>
+
+    <div class="spacer"></div>
+
+    <select id="lang-select" onchange="onLangChange(this.value)">
+      <option value="python">Python</option>
+      <option value="javascript">JavaScript</option>
+      <option value="java">Java</option>
+      <option value="cpp">C++</option>
+      <option value="text">Plain Text</option>
+    </select>
+
+    <button id="copy-btn" onclick="copyInviteLink()">⎘ Copy Invite Link</button>
+  </div>
+
+  <!-- Editor mounts here -->
+  <div id="editor-wrap"></div>
+
+  <!-- Status bar -->
+  <div id="statusbar">
+    <span id="status-lang">Python</span>
+    <span id="status-conn">Connecting…</span>
+  </div>
+
+</div><!-- #app -->
+
+<!-- Error / disconnect overlay -->
+<div id="overlay">
+  <div id="overlay-box">
+    <h2 id="overlay-title">Disconnected</h2>
+    <p  id="overlay-msg">You have been disconnected.</p>
+    <a href="/">← Back to home</a>
+  </div>
+</div>
+
+<!-- Connecting splash — hidden once editor is ready -->
+<div id="splash">Connecting to room…</div>
+
+<!--
+  Socket.io client is served automatically by the Socket.io server
+  at the /socket.io/socket.io.js path — no separate install needed.
+-->
+<script src="/socket.io/socket.io.js"></script>
+
+<!--
+  CodeMirror 6 — loaded from a LOCAL bundle built by esbuild (public/cm.bundle.js).
+
+  WHY NOT CDN: CM6 is split across dozens of packages that all share
+  @codemirror/state and @codemirror/view. Loading them from separate CDN URLs
+  gives each its own module instance, breaking instanceof checks with:
+    "Unrecognized extension value … multiple instances of @codemirror/state"
+
+  FIX: esbuild bundles src/editor.js (and all CM deps) into one IIFE file.
+  One file → one instance of every shared module → no conflicts.
+  Build runs automatically on `npm install` via the "prepare" script.
+-->
+<script src="/cm.bundle.js"></script>
+
+<script>
+  // Destructure everything we need from the global CM object
+  // (set by the IIFE bundle above as window.CM)
+  const {
+    EditorView, EditorState, Compartment,
+    basicSetup, oneDark,
+    python, javascript, java, cpp,
+  } = CM;
+
+  // ────────────────────────────────────────────────────────────
+  // Room identity — parsed from URL and sessionStorage
+  // ────────────────────────────────────────────────────────────
+
+  // Extract room name from path: /room/python-101 → "python-101"
+  const roomName = decodeURIComponent(window.location.pathname.split('/room/')[1] || '');
+
+  // Credentials stored by index.html before redirecting here
+  const password = sessionStorage.getItem('roomPassword');
+  const username = sessionStorage.getItem('username') || '';
+
+  // If there's no password (e.g. user opened the URL directly),
+  // send them to the landing page which will pre-fill the join form.
+  if (!password) {
+    window.location.href = `/?join=${encodeURIComponent(roomName)}`;
+  }
+
+  // ────────────────────────────────────────────────────────────
+  // State
+  // ────────────────────────────────────────────────────────────
+  let currentUser   = null;   // our own user object from the server
+  let currentLang   = 'python';
+  let editor        = null;
+
+  /**
+   * Flag: set to true while we are applying a change that came FROM the server.
+   * When true, the editor's updateListener will not emit another code-change
+   * event, preventing an infinite feedback loop:
+   *   us → server → us → server → …
+   */
+  let isRemoteChange = false;
+
+  // Compartment lets us swap the language extension at runtime
+  // without rebuilding the entire editor.
+  const langCompartment = new Compartment();
+
+  // ────────────────────────────────────────────────────────────
+  // Language helpers
+  // ────────────────────────────────────────────────────────────
+  const LANG_LABELS = {
+    python: 'Python', javascript: 'JavaScript',
+    java: 'Java', cpp: 'C++', text: 'Plain Text',
+  };
+
+  function getLangExtension(lang) {
+    switch (lang) {
+      case 'python':     return python();
+      case 'javascript': return javascript();
+      case 'java':       return java();
+      case 'cpp':        return cpp();
+      default:           return [];
+    }
+  }
+
+  // ────────────────────────────────────────────────────────────
+  // Editor setup
+  // ────────────────────────────────────────────────────────────
+
+  function initEditor(initialCode, lang) {
+    editor = new EditorView({
+      state: EditorState.create({
+        doc: initialCode,
+        extensions: [
+          basicSetup,
+          oneDark,
+          // langCompartment wraps the language so we can hot-swap it later
+          langCompartment.of(getLangExtension(lang)),
+
+          // Listen for every document change
+          EditorView.updateListener.of((update) => {
+            if (!update.docChanged) return;
+            // Only emit if this was a *local* change (typed by this user)
+            if (!isRemoteChange) {
+              socket.emit('code-change', {
+                roomName,
+                code: update.state.doc.toString(),
+              });
+            }
+          }),
+        ],
+      }),
+      parent: document.getElementById('editor-wrap'),
+    });
+  }
+
+  /**
+   * Replace the entire editor content with new code received from the server.
+   * We set isRemoteChange = true so the updateListener won't re-emit it.
+   */
+  function applyRemoteCode(code) {
+    if (!editor) return;
+    isRemoteChange = true;
+    editor.dispatch({
+      changes: {
+        from: 0,
+        to: editor.state.doc.length,
+        insert: code,
+      },
+    });
+    isRemoteChange = false;
+  }
+
+  /**
+   * Swap the language extension using the Compartment — no editor rebuild needed.
+   */
+  function applyLanguage(lang) {
+    if (!editor) return;
+    editor.dispatch({
+      effects: langCompartment.reconfigure(getLangExtension(lang)),
+    });
+  }
+
+  // ────────────────────────────────────────────────────────────
+  // User list rendering
+  // ────────────────────────────────────────────────────────────
+
+  function renderUsers(users) {
+    const row   = document.getElementById('users-row');
+    const count = document.getElementById('user-count');
+
+    row.innerHTML = '';
+
+    users.forEach((u) => {
+      const av = document.createElement('div');
+      av.className = 'avatar';
+      av.style.background = u.color;
+      av.textContent = (u.username || '?')[0].toUpperCase();
+      // Tooltip: name + crown for host
+      av.setAttribute('data-tip', u.username + (u.isHost ? ' 👑' : ''));
+      // Ring around our own avatar
+      if (currentUser && u.id === currentUser.id) {
+        av.style.outline = '2px solid #fff';
+        av.style.outlineOffset = '1px';
+      }
+      row.appendChild(av);
+    });
+
+    count.textContent = `${users.length} user${users.length !== 1 ? 's' : ''}`;
+  }
+
+  // ────────────────────────────────────────────────────────────
+  // Socket.io
+  // ────────────────────────────────────────────────────────────
+
+  const socket = io();
+
+  // Once the socket connects, immediately request to join the room
+  socket.on('connect', () => {
+    socket.emit('join-room', { roomName, password, username });
+    setConnStatus('Connected', false);
+  });
+
+  /**
+   * room-state — received once after joining.
+   * Contains the full current state: code, language, user list, and our own
+   * user object (including whether we are the host).
+   */
+  socket.on('room-state', ({ code, language, users, currentUser: me }) => {
+    currentUser = me;
+    currentLang = language;
+
+    // Update page title and room name display
+    document.title = `CodeShare — ${roomName}`;
+    document.getElementById('room-name-text').textContent = roomName;
+
+    // Show host badge next to room name if we are the host
+    if (me.isHost) addHostBadge();
+
+    // Build the editor with the room's current code + language
+    initEditor(code, language);
+
+    // Sync the language dropdown and status bar label
+    document.getElementById('lang-select').value = language;
+    document.getElementById('status-lang').textContent = LANG_LABELS[language] || language;
+
+    renderUsers(users);
+
+    // Hide the connecting splash now that everything is ready
+    document.getElementById('splash').style.display = 'none';
+  });
+
+  /**
+   * code-change — another user edited the code.
+   * Apply it without emitting back (isRemoteChange guard).
+   */
+  socket.on('code-change', ({ code }) => {
+    applyRemoteCode(code);
+  });
+
+  /**
+   * user-joined — someone new entered the room.
+   */
+  socket.on('user-joined', ({ users }) => {
+    renderUsers(users);
+  });
+
+  /**
+   * user-left — someone left. Re-render users; if we became the new host,
+   * show the host badge.
+   */
+  socket.on('user-left', ({ users, newHostId }) => {
+    renderUsers(users);
+    if (newHostId === socket.id && currentUser && !currentUser.isHost) {
+      currentUser.isHost = true;
+      addHostBadge();
+    }
+  });
+
+  /**
+   * language-change — another user (or an echo of our own) changed the language.
+   */
+  socket.on('language-change', ({ language }) => {
+    if (language === currentLang) return;
+    currentLang = language;
+    document.getElementById('lang-select').value = language;
+    document.getElementById('status-lang').textContent = LANG_LABELS[language] || language;
+    applyLanguage(language);
+  });
+
+  // Server-side validation error (wrong password, room not found, etc.)
+  socket.on('error', ({ message }) => {
+    showOverlay('Access Denied', message);
+  });
+
+  socket.on('disconnect', () => {
+    setConnStatus('Disconnected', true);
+    showOverlay('Disconnected', 'Your connection to the room was lost.');
+  });
+
+  socket.on('connect_error', () => {
+    setConnStatus('Connection error', true);
+  });
+
+  // ────────────────────────────────────────────────────────────
+  // UI helpers (also exposed on window for inline onclick attrs)
+  // ────────────────────────────────────────────────────────────
+
+  /**
+   * Called by the language <select> dropdown.
+   * Emits to the server; the server broadcasts back to all including sender,
+   * so language-change handler above handles the actual editor update.
+   */
+  window.onLangChange = function (lang) {
+    socket.emit('language-change', { roomName, language: lang });
+  };
+
+  /** Copy the shareable room URL to the clipboard. */
+  window.copyInviteLink = function () {
+    const url = `${location.origin}/room/${encodeURIComponent(roomName)}`;
+    navigator.clipboard.writeText(url).then(() => {
+      const btn = document.getElementById('copy-btn');
+      btn.textContent = '✓ Copied!';
+      btn.classList.add('copied');
+      setTimeout(() => {
+        btn.textContent = '⎘ Copy Invite Link';
+        btn.classList.remove('copied');
+      }, 2000);
+    });
+  };
+
+  function addHostBadge() {
+    if (document.querySelector('.host-badge')) return; // already added
+    const badge = document.createElement('span');
+    badge.className = 'host-badge';
+    badge.textContent = 'host';
+    document.getElementById('room-title').appendChild(badge);
+  }
+
+  function setConnStatus(text, isError) {
+    const el = document.getElementById('status-conn');
+    el.textContent = text;
+    el.classList.toggle('disconnected', isError);
+  }
+
+  function showOverlay(title, msg) {
+    document.getElementById('overlay-title').textContent = title;
+    document.getElementById('overlay-msg').textContent   = msg;
+    document.getElementById('overlay').classList.add('show');
+  }
+</script>
+</body>
+</html>

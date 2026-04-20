@@ -1,0 +1,344 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>CodeShare — Real-time Collaborative Editor</title>
+  <style>
+    /* ── Reset & base ────────────────────────────────────────── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background: #1e1e1e;
+      color: #d4d4d4;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    /* ── Layout ──────────────────────────────────────────────── */
+    .wrapper {
+      width: 100%;
+      max-width: 460px;
+      padding: 1.5rem;
+    }
+
+    /* ── Branding ────────────────────────────────────────────── */
+    .brand {
+      text-align: center;
+      margin-bottom: 2rem;
+    }
+    .brand h1 {
+      font-size: 2rem;
+      font-weight: 700;
+      color: #007acc;
+      letter-spacing: -0.5px;
+    }
+    .brand p {
+      margin-top: 0.4rem;
+      font-size: 0.875rem;
+      color: #6a6a6a;
+    }
+
+    /* ── Tab bar ─────────────────────────────────────────────── */
+    .tabs {
+      display: flex;
+      background: #252526;
+      border: 1px solid #3c3c3c;
+      border-bottom: none;
+      border-radius: 8px 8px 0 0;
+      overflow: hidden;
+    }
+    .tab-btn {
+      flex: 1;
+      padding: 0.8rem;
+      background: transparent;
+      border: none;
+      color: #6a6a6a;
+      font-size: 0.9rem;
+      cursor: pointer;
+      transition: background 0.15s, color 0.15s;
+      border-bottom: 2px solid transparent;
+    }
+    .tab-btn.active {
+      background: #1e1e1e;
+      color: #d4d4d4;
+      border-bottom-color: #007acc;
+    }
+    .tab-btn:not(.active):hover {
+      background: #2a2d2e;
+      color: #c0c0c0;
+    }
+
+    /* ── Card ────────────────────────────────────────────────── */
+    .card {
+      background: #252526;
+      border: 1px solid #3c3c3c;
+      border-top: none;
+      border-radius: 0 0 8px 8px;
+      padding: 1.5rem;
+    }
+    .tab-panel { display: none; }
+    .tab-panel.active { display: block; }
+
+    /* ── Form elements ───────────────────────────────────────── */
+    .form-group { margin-bottom: 1rem; }
+
+    label {
+      display: block;
+      font-size: 0.8rem;
+      color: #9cdcfe;
+      margin-bottom: 0.35rem;
+      font-weight: 500;
+    }
+
+    input {
+      width: 100%;
+      padding: 0.55rem 0.75rem;
+      background: #1e1e1e;
+      border: 1px solid #3c3c3c;
+      border-radius: 4px;
+      color: #d4d4d4;
+      font-size: 0.9rem;
+      transition: border-color 0.15s;
+    }
+    input:focus {
+      outline: none;
+      border-color: #007acc;
+    }
+    input::placeholder { color: #4a4a4a; }
+
+    .hint {
+      margin-top: 0.3rem;
+      font-size: 0.75rem;
+      color: #6a9955;
+    }
+
+    /* ── Primary button ──────────────────────────────────────── */
+    .btn-primary {
+      width: 100%;
+      padding: 0.7rem;
+      margin-top: 0.25rem;
+      background: #007acc;
+      color: #fff;
+      border: none;
+      border-radius: 4px;
+      font-size: 0.95rem;
+      font-weight: 500;
+      cursor: pointer;
+      transition: background 0.15s;
+    }
+    .btn-primary:hover  { background: #0096e0; }
+    .btn-primary:active { background: #005fa3; }
+    .btn-primary:disabled { background: #004a7a; cursor: not-allowed; }
+
+    /* ── Error banner ────────────────────────────────────────── */
+    .error-msg {
+      display: none;
+      background: #3a1515;
+      border: 1px solid #f48771;
+      color: #f48771;
+      padding: 0.55rem 0.75rem;
+      border-radius: 4px;
+      font-size: 0.85rem;
+      margin-bottom: 1rem;
+    }
+  </style>
+</head>
+<body>
+
+<div class="wrapper">
+  <!-- Brand header -->
+  <div class="brand">
+    <h1>⚡ CodeShare</h1>
+    <p>Real-time collaborative code editor &mdash; no login required</p>
+  </div>
+
+  <!-- Tab switcher -->
+  <div class="tabs">
+    <button class="tab-btn active" id="tab-create" onclick="switchTab('create')">Create Room</button>
+    <button class="tab-btn"        id="tab-join"   onclick="switchTab('join')">Join Room</button>
+  </div>
+
+  <div class="card">
+
+    <!-- ── Create panel ──────────────────────────────────────── -->
+    <div id="panel-create" class="tab-panel active">
+      <div id="create-error" class="error-msg"></div>
+
+      <div class="form-group">
+        <label for="create-name">Room Name</label>
+        <input id="create-name" type="text" placeholder="e.g. python-101" autocomplete="off" />
+        <div class="hint">Letters, numbers, and hyphens. Spaces become hyphens.</div>
+      </div>
+
+      <div class="form-group">
+        <label for="create-pass">Password</label>
+        <input id="create-pass" type="password" placeholder="Choose a password" />
+      </div>
+
+      <div class="form-group">
+        <label for="create-user">Your Name <span style="color:#4a4a4a">(optional)</span></label>
+        <input id="create-user" type="text" placeholder="e.g. Alice" autocomplete="off" />
+      </div>
+
+      <button class="btn-primary" id="create-btn" onclick="createRoom()">Create Room →</button>
+    </div>
+
+    <!-- ── Join panel ────────────────────────────────────────── -->
+    <div id="panel-join" class="tab-panel">
+      <div id="join-error" class="error-msg"></div>
+
+      <div class="form-group">
+        <label for="join-name">Room Name</label>
+        <input id="join-name" type="text" placeholder="e.g. python-101" autocomplete="off" />
+      </div>
+
+      <div class="form-group">
+        <label for="join-pass">Password</label>
+        <input id="join-pass" type="password" placeholder="Enter room password" />
+      </div>
+
+      <div class="form-group">
+        <label for="join-user">Your Name <span style="color:#4a4a4a">(optional)</span></label>
+        <input id="join-user" type="text" placeholder="e.g. Bob" autocomplete="off" />
+      </div>
+
+      <button class="btn-primary" id="join-btn" onclick="joinRoom()">Join Room →</button>
+    </div>
+
+  </div><!-- .card -->
+</div><!-- .wrapper -->
+
+<script>
+  // ────────────────────────────────────────────────────────────
+  // Pre-fill join form when arriving via a shareable link
+  // e.g. /room/python-101  OR  /?join=python-101
+  // ────────────────────────────────────────────────────────────
+  (function prefill() {
+    // Case 1: user navigated to /room/xyz directly
+    const pathMatch = window.location.pathname.match(/^\/room\/(.+)$/);
+    // Case 2: redirected with ?join=xyz query param
+    const params = new URLSearchParams(window.location.search);
+    const joinParam = params.get('join');
+
+    const roomHint = pathMatch ? decodeURIComponent(pathMatch[1]) : joinParam;
+    if (roomHint) {
+      switchTab('join');
+      document.getElementById('join-name').value = roomHint;
+      document.getElementById('join-pass').focus();
+    }
+  })();
+
+  // ── Tab switching ────────────────────────────────────────────
+  function switchTab(tab) {
+    const isCreate = tab === 'create';
+    document.getElementById('tab-create').classList.toggle('active',  isCreate);
+    document.getElementById('tab-join'  ).classList.toggle('active', !isCreate);
+    document.getElementById('panel-create').classList.toggle('active',  isCreate);
+    document.getElementById('panel-join'  ).classList.toggle('active', !isCreate);
+  }
+
+  // ── Error helpers ─────────────────────────────────────────────
+  function showError(id, msg) {
+    const el = document.getElementById(id);
+    el.textContent = msg;
+    el.style.display = 'block';
+  }
+  function clearError(id) {
+    document.getElementById(id).style.display = 'none';
+  }
+
+  // ── Create room ───────────────────────────────────────────────
+  async function createRoom() {
+    clearError('create-error');
+    const roomName = document.getElementById('create-name').value.trim();
+    const password = document.getElementById('create-pass').value;
+    const username = document.getElementById('create-user').value.trim() || 'Host';
+
+    if (!roomName) return showError('create-error', 'Please enter a room name.');
+    if (!password) return showError('create-error', 'Please choose a password.');
+
+    const btn = document.getElementById('create-btn');
+    btn.disabled = true;
+    btn.textContent = 'Creating…';
+
+    try {
+      const res  = await fetch('/api/create-room', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ roomName, password }),
+      });
+      const data = await res.json();
+
+      if (!res.ok) {
+        showError('create-error', data.error);
+        btn.disabled = false;
+        btn.textContent = 'Create Room →';
+        return;
+      }
+
+      // Save credentials in sessionStorage; room.html reads them on load
+      sessionStorage.setItem('roomPassword', password);
+      sessionStorage.setItem('username', username);
+      window.location.href = `/room/${data.roomName}`;
+
+    } catch {
+      showError('create-error', 'Could not reach the server. Is it running?');
+      btn.disabled = false;
+      btn.textContent = 'Create Room →';
+    }
+  }
+
+  // ── Join room ─────────────────────────────────────────────────
+  async function joinRoom() {
+    clearError('join-error');
+    const roomName = document.getElementById('join-name').value.trim();
+    const password = document.getElementById('join-pass').value;
+    const username = document.getElementById('join-user').value.trim();
+
+    if (!roomName) return showError('join-error', 'Please enter a room name.');
+    if (!password) return showError('join-error', 'Please enter the password.');
+
+    const btn = document.getElementById('join-btn');
+    btn.disabled = true;
+    btn.textContent = 'Joining…';
+
+    try {
+      const res  = await fetch('/api/join-room', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ roomName, password }),
+      });
+      const data = await res.json();
+
+      if (!res.ok) {
+        showError('join-error', data.error);
+        btn.disabled = false;
+        btn.textContent = 'Join Room →';
+        return;
+      }
+
+      sessionStorage.setItem('roomPassword', password);
+      sessionStorage.setItem('username', username);
+      window.location.href = `/room/${data.roomName}`;
+
+    } catch {
+      showError('join-error', 'Could not reach the server. Is it running?');
+      btn.disabled = false;
+      btn.textContent = 'Join Room →';
+    }
+  }
+
+  // ── Submit on Enter ───────────────────────────────────────────
+  document.addEventListener('keydown', (e) => {
+    if (e.key !== 'Enter') return;
+    const createActive = document.getElementById('panel-create').classList.contains('active');
+    if (createActive) createRoom(); else joinRoom();
+  });
+</script>
+
+</body>
+</html>

@@ -1,0 +1,414 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>CodeShare</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body { height: 100%; background: #1e1e1e; color: #d4d4d4; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; overflow: hidden; }
+    #app { display: flex; flex-direction: column; height: 100vh; }
+
+    /* Top bar */
+    #topbar { flex-shrink:0; height:44px; background:#252526; border-bottom:1px solid #3c3c3c; display:flex; align-items:center; gap:0.75rem; padding:0 0.9rem; overflow:hidden; }
+    #room-title { display:flex; align-items:center; gap:0.4rem; white-space:nowrap; flex-shrink:0; }
+    #room-name-text { font-weight:600; color:#007acc; font-size:0.95rem; }
+    .host-badge { font-size:0.68rem; background:rgba(0,122,204,0.15); color:#007acc; border:1px solid rgba(0,122,204,0.35); border-radius:3px; padding:1px 5px; font-weight:600; }
+    .sep { width:1px; height:22px; background:#3c3c3c; flex-shrink:0; }
+    #users-row { display:flex; align-items:center; gap:4px; min-width:0; }
+    .avatar { width:26px; height:26px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:0.68rem; font-weight:700; color:#1e1e1e; flex-shrink:0; position:relative; cursor:default; user-select:none; }
+    .avatar::after { content:attr(data-tip); position:absolute; top:calc(100% + 6px); left:50%; transform:translateX(-50%); background:#3c3c3c; color:#d4d4d4; font-size:0.72rem; font-family:inherit; font-weight:400; padding:2px 7px; border-radius:3px; white-space:nowrap; pointer-events:none; opacity:0; transition:opacity 0.1s; z-index:50; }
+    .avatar:hover::after { opacity:1; }
+    #user-count { font-size:0.78rem; color:#6a6a6a; white-space:nowrap; flex-shrink:0; }
+    .spacer { flex:1; min-width:0.5rem; }
+    #lang-select { background:#1e1e1e; color:#d4d4d4; border:1px solid #3c3c3c; border-radius:4px; padding:0.25rem 0.5rem; font-size:0.82rem; cursor:pointer; flex-shrink:0; }
+    #lang-select:focus { outline:none; border-color:#007acc; }
+    #copy-btn { background:#2d2d2d; color:#d4d4d4; border:1px solid #3c3c3c; border-radius:4px; padding:0.25rem 0.7rem; font-size:0.82rem; cursor:pointer; white-space:nowrap; flex-shrink:0; transition:border-color 0.15s,color 0.15s; }
+    #copy-btn:hover { background:#383838; border-color:#007acc; }
+    #copy-btn.copied { color:#4ec9b0; border-color:#4ec9b0; }
+
+    /* File tab bar */
+    #tabbar { flex-shrink:0; height:36px; background:#252526; border-bottom:1px solid #1e1e1e; display:flex; align-items:stretch; overflow-x:auto; overflow-y:hidden; scrollbar-width:thin; scrollbar-color:#3c3c3c transparent; }
+    #tabbar::-webkit-scrollbar { height:3px; }
+    #tabbar::-webkit-scrollbar-thumb { background:#3c3c3c; }
+    .tab { display:flex; align-items:center; gap:0.3rem; padding:0 0.75rem; min-width:90px; max-width:160px; border-right:1px solid #1e1e1e; cursor:pointer; color:#8a8a8a; font-size:0.8rem; white-space:nowrap; position:relative; user-select:none; flex-shrink:0; transition:background 0.1s,color 0.1s; }
+    .tab:hover { background:#2a2d2e; color:#d4d4d4; }
+    .tab.active { background:#1e1e1e; color:#d4d4d4; border-top:1px solid #007acc; margin-top:-1px; }
+    .tab-icon { font-size:0.85rem; flex-shrink:0; }
+    .tab-name { flex:1; overflow:hidden; text-overflow:ellipsis; outline:none; }
+    .tab-name[contenteditable="true"] { background:#1e1e1e; border:1px solid #007acc; border-radius:2px; padding:0 3px; cursor:text; min-width:60px; }
+    .tab-close { width:16px; height:16px; display:none; align-items:center; justify-content:center; border-radius:3px; font-size:0.75rem; flex-shrink:0; color:#6a6a6a; }
+    .tab:hover .tab-close, .tab.active .tab-close { display:flex; }
+    .tab-close:hover { background:#555; color:#fff; }
+    #new-file-btn { display:flex; align-items:center; justify-content:center; width:36px; cursor:pointer; color:#6a6a6a; font-size:1.1rem; flex-shrink:0; transition:color 0.1s,background 0.1s; }
+    #new-file-btn:hover { color:#d4d4d4; background:#2a2d2e; }
+
+    /* Editor */
+    #editor-wrap { flex:1; overflow:hidden; display:flex; flex-direction:column; min-height:0; }
+    .cm-editor { height:100% !important; font-size:14px !important; }
+    .cm-scroller { overflow:auto !important; font-family:'Fira Code','Cascadia Code','Consolas','Menlo',monospace !important; }
+
+    /* Status bar */
+    #statusbar { flex-shrink:0; height:22px; background:#007acc; display:flex; align-items:center; padding:0 0.9rem; gap:1.25rem; font-size:0.72rem; color:#fff; }
+    #status-conn.disconnected { color:#f48771; }
+
+    /* Overlay */
+    #overlay { display:none; position:fixed; inset:0; background:rgba(0,0,0,0.65); z-index:200; align-items:center; justify-content:center; }
+    #overlay.show { display:flex; }
+    #overlay-box { background:#252526; border:1px solid #f48771; border-radius:8px; padding:2rem 2.5rem; text-align:center; max-width:380px; }
+    #overlay-box h2 { color:#f48771; margin-bottom:0.5rem; }
+    #overlay-box p { color:#9a9a9a; margin-bottom:1.25rem; font-size:0.9rem; }
+    #overlay-box a { color:#007acc; text-decoration:none; font-size:0.9rem; }
+
+    /* New-file dialog */
+    #new-file-dialog { display:none; position:fixed; inset:0; background:rgba(0,0,0,0.5); z-index:300; align-items:center; justify-content:center; }
+    #new-file-dialog.show { display:flex; }
+    #new-file-box { background:#252526; border:1px solid #3c3c3c; border-radius:8px; padding:1.5rem; min-width:320px; }
+    #new-file-box h3 { margin-bottom:1rem; font-size:0.95rem; color:#d4d4d4; }
+    #new-file-box input { width:100%; padding:0.5rem 0.75rem; background:#1e1e1e; border:1px solid #3c3c3c; border-radius:4px; color:#d4d4d4; font-size:0.9rem; margin-bottom:1rem; }
+    #new-file-box input:focus { outline:none; border-color:#007acc; }
+    .dialog-btns { display:flex; gap:0.5rem; justify-content:flex-end; }
+    .dialog-btns button { padding:0.4rem 1rem; border-radius:4px; border:1px solid #3c3c3c; cursor:pointer; font-size:0.85rem; }
+    .btn-cancel { background:#2d2d2d; color:#d4d4d4; }
+    .btn-cancel:hover { background:#383838; }
+    .btn-confirm { background:#007acc; color:#fff; border-color:#007acc; }
+    .btn-confirm:hover { background:#0096e0; }
+
+    /* Splash */
+    #splash { position:fixed; inset:0; background:#1e1e1e; display:flex; align-items:center; justify-content:center; z-index:100; font-size:0.9rem; color:#6a6a6a; }
+  </style>
+</head>
+<body>
+<div id="app">
+  <div id="topbar">
+    <div id="room-title"><span id="room-name-text">…</span></div>
+    <div class="sep"></div>
+    <div id="users-row"></div>
+    <span id="user-count"></span>
+    <div class="spacer"></div>
+    <select id="lang-select" onchange="onLangChange(this.value)">
+      <option value="python">Python</option>
+      <option value="javascript">JavaScript</option>
+      <option value="java">Java</option>
+      <option value="cpp">C++</option>
+      <option value="text">Plain Text</option>
+    </select>
+    <button id="copy-btn" onclick="copyInviteLink()">⎘ Copy Invite Link</button>
+  </div>
+
+  <div id="tabbar">
+    <div id="new-file-btn" title="New file" onclick="openNewFileDialog()">＋</div>
+  </div>
+
+  <div id="editor-wrap"></div>
+
+  <div id="statusbar">
+    <span id="status-file">—</span>
+    <span id="status-lang">—</span>
+    <span id="status-conn">Connecting…</span>
+  </div>
+</div>
+
+<div id="overlay">
+  <div id="overlay-box">
+    <h2 id="overlay-title">Disconnected</h2>
+    <p id="overlay-msg">You have been disconnected.</p>
+    <a href="/">← Back to home</a>
+  </div>
+</div>
+
+<div id="new-file-dialog">
+  <div id="new-file-box">
+    <h3>New File</h3>
+    <input id="new-file-name" type="text" placeholder="e.g. utils.py" autocomplete="off" />
+    <div class="dialog-btns">
+      <button class="btn-cancel" onclick="closeNewFileDialog()">Cancel</button>
+      <button class="btn-confirm" onclick="confirmNewFile()">Create</button>
+    </div>
+  </div>
+</div>
+
+<div id="splash">Connecting to room…</div>
+
+<script src="/socket.io/socket.io.js"></script>
+<script src="/cm.bundle.js"></script>
+<script>
+'use strict';
+
+const { EditorView, EditorState, Compartment, basicSetup, oneDark, python, javascript, java, cpp } = CM;
+
+const roomName = decodeURIComponent(window.location.pathname.split('/room/')[1] || '');
+const password = sessionStorage.getItem('roomPassword');
+const username = sessionStorage.getItem('username') || '';
+
+if (!password) window.location.href = '/?join=' + encodeURIComponent(roomName);
+
+let currentUser    = null;
+let files          = [];
+let activeFileId   = null;
+let editor         = null;
+let isRemoteChange = false;
+const langComp     = new Compartment();
+
+const LANG_LABELS = { python:'Python', javascript:'JavaScript', java:'Java', cpp:'C++', text:'Plain Text' };
+const LANG_ICONS  = { python:'🐍', javascript:'🟨', java:'☕', cpp:'⚙️', text:'📄' };
+
+function getLangExt(lang) {
+  switch(lang) {
+    case 'python':     return python();
+    case 'javascript': return javascript();
+    case 'java':       return java();
+    case 'cpp':        return cpp();
+    default:           return [];
+  }
+}
+
+// ── Editor ────────────────────────────────────────────────────────────────
+function initEditor(code, lang) {
+  if (editor) { editor.destroy(); editor = null; }
+  document.getElementById('editor-wrap').innerHTML = '';
+  editor = new EditorView({
+    state: EditorState.create({
+      doc: code,
+      extensions: [
+        basicSetup, oneDark,
+        langComp.of(getLangExt(lang)),
+        EditorView.updateListener.of((u) => {
+          if (!u.docChanged || isRemoteChange) return;
+          socket.emit('code-change', { roomName, fileId: activeFileId, code: u.state.doc.toString() });
+        }),
+      ],
+    }),
+    parent: document.getElementById('editor-wrap'),
+  });
+}
+
+function applyRemoteCode(code) {
+  if (!editor) return;
+  isRemoteChange = true;
+  editor.dispatch({ changes: { from:0, to:editor.state.doc.length, insert:code } });
+  isRemoteChange = false;
+}
+
+function applyLang(lang) {
+  if (!editor) return;
+  editor.dispatch({ effects: langComp.reconfigure(getLangExt(lang)) });
+}
+
+// ── Tabs ──────────────────────────────────────────────────────────────────
+function renderTabs() {
+  const bar    = document.getElementById('tabbar');
+  const newBtn = document.getElementById('new-file-btn');
+  bar.querySelectorAll('.tab').forEach(t => t.remove());
+
+  files.forEach((file) => {
+    const tab = document.createElement('div');
+    tab.className = 'tab' + (file.id === activeFileId ? ' active' : '');
+    tab.dataset.id = file.id;
+
+    const icon = document.createElement('span');
+    icon.className = 'tab-icon';
+    icon.textContent = LANG_ICONS[file.language] || '📄';
+
+    const nameEl = document.createElement('span');
+    nameEl.className = 'tab-name';
+    nameEl.textContent = file.name;
+    nameEl.title = 'Double-click to rename';
+    nameEl.addEventListener('dblclick', (e) => { e.stopPropagation(); startRename(file.id, nameEl); });
+
+    tab.addEventListener('click', () => {
+      if (nameEl.contentEditable === 'true') return;
+      switchToFile(file.id);
+    });
+
+    const closeBtn = document.createElement('span');
+    closeBtn.className = 'tab-close';
+    closeBtn.textContent = '×';
+    closeBtn.title = files.length > 1 ? 'Delete file' : 'Cannot delete last file';
+    closeBtn.addEventListener('click', (e) => { e.stopPropagation(); deleteFile(file.id); });
+
+    tab.appendChild(icon); tab.appendChild(nameEl); tab.appendChild(closeBtn);
+    bar.insertBefore(tab, newBtn);
+  });
+}
+
+function startRename(fileId, nameEl) {
+  const original = nameEl.textContent;
+  nameEl.contentEditable = 'true';
+  nameEl.focus();
+  const range = document.createRange();
+  range.selectNodeContents(nameEl);
+  window.getSelection().removeAllRanges();
+  window.getSelection().addRange(range);
+
+  function commit() {
+    nameEl.contentEditable = 'false';
+    const newName = nameEl.textContent.trim();
+    if (newName && newName !== original) socket.emit('file-rename', { roomName, fileId, name: newName });
+    else nameEl.textContent = original;
+    nameEl.removeEventListener('blur', commit);
+    nameEl.removeEventListener('keydown', onKey);
+  }
+  function onKey(e) {
+    if (e.key === 'Enter') { e.preventDefault(); nameEl.blur(); }
+    if (e.key === 'Escape') { nameEl.textContent = original; nameEl.blur(); }
+  }
+  nameEl.addEventListener('blur', commit);
+  nameEl.addEventListener('keydown', onKey);
+}
+
+// ── File switch ───────────────────────────────────────────────────────────
+function switchToFile(fileId) {
+  const file = files.find(f => f.id === fileId);
+  if (!file || file.id === activeFileId) return;
+  if (activeFileId && editor) {
+    const cur = files.find(f => f.id === activeFileId);
+    if (cur) cur.code = editor.state.doc.toString();
+  }
+  activeFileId = fileId;
+  initEditor(file.code, file.language);
+  document.getElementById('lang-select').value = file.language;
+  renderTabs();
+  updateStatus();
+}
+
+function deleteFile(fileId) {
+  if (files.length <= 1) return;
+  if (!confirm('Delete this file? This cannot be undone.')) return;
+  socket.emit('file-delete', { roomName, fileId });
+}
+
+// ── Users ─────────────────────────────────────────────────────────────────
+function renderUsers(users) {
+  const row = document.getElementById('users-row');
+  row.innerHTML = '';
+  users.forEach((u) => {
+    const av = document.createElement('div');
+    av.className = 'avatar';
+    av.style.background = u.color;
+    av.textContent = (u.username||'?')[0].toUpperCase();
+    av.setAttribute('data-tip', u.username + (u.isHost ? ' 👑' : ''));
+    if (currentUser && u.id === currentUser.id) { av.style.outline = '2px solid #fff'; av.style.outlineOffset = '1px'; }
+    row.appendChild(av);
+  });
+  document.getElementById('user-count').textContent = users.length + ' user' + (users.length !== 1 ? 's' : '');
+}
+
+function updateStatus() {
+  const file = files.find(f => f.id === activeFileId);
+  document.getElementById('status-file').textContent = file ? file.name : '—';
+  document.getElementById('status-lang').textContent = file ? (LANG_LABELS[file.language] || file.language) : '—';
+}
+
+function setConnStatus(text, isErr) {
+  const el = document.getElementById('status-conn');
+  el.textContent = text;
+  el.classList.toggle('disconnected', isErr);
+}
+
+// ── Dialog ────────────────────────────────────────────────────────────────
+function openNewFileDialog() {
+  document.getElementById('new-file-name').value = '';
+  document.getElementById('new-file-dialog').classList.add('show');
+  document.getElementById('new-file-name').focus();
+}
+function closeNewFileDialog() { document.getElementById('new-file-dialog').classList.remove('show'); }
+function confirmNewFile() {
+  const name = document.getElementById('new-file-name').value.trim();
+  if (!name) return;
+  socket.emit('file-create', { roomName, name });
+  closeNewFileDialog();
+}
+document.getElementById('new-file-name').addEventListener('keydown', (e) => {
+  if (e.key === 'Enter') confirmNewFile();
+  if (e.key === 'Escape') closeNewFileDialog();
+});
+
+function showOverlay(title, msg) {
+  document.getElementById('overlay-title').textContent = title;
+  document.getElementById('overlay-msg').textContent = msg;
+  document.getElementById('overlay').classList.add('show');
+}
+
+function addHostBadge() {
+  if (document.querySelector('.host-badge')) return;
+  const b = document.createElement('span');
+  b.className = 'host-badge'; b.textContent = 'host';
+  document.getElementById('room-title').appendChild(b);
+}
+
+// ── Socket ────────────────────────────────────────────────────────────────
+const socket = io();
+
+socket.on('connect', () => {
+  socket.emit('join-room', { roomName, password, username });
+  setConnStatus('Connected', false);
+});
+
+socket.on('room-state', ({ files: sf, users, currentUser: me }) => {
+  currentUser = me; files = sf; activeFileId = files[0]?.id ?? null;
+  document.title = 'CodeShare — ' + roomName;
+  document.getElementById('room-name-text').textContent = roomName;
+  if (me.isHost) addHostBadge();
+  const first = files[0];
+  if (first) { initEditor(first.code, first.language); document.getElementById('lang-select').value = first.language; }
+  renderTabs(); renderUsers(users); updateStatus();
+  document.getElementById('splash').style.display = 'none';
+});
+
+socket.on('code-change', ({ fileId, code }) => {
+  const file = files.find(f => f.id === fileId);
+  if (!file) return;
+  file.code = code;
+  if (fileId === activeFileId) applyRemoteCode(code);
+});
+
+socket.on('language-change', ({ fileId, language }) => {
+  const file = files.find(f => f.id === fileId);
+  if (!file) return;
+  file.language = language;
+  if (fileId === activeFileId) { applyLang(language); document.getElementById('lang-select').value = language; updateStatus(); }
+  renderTabs();
+});
+
+socket.on('file-created', ({ file }) => {
+  files.push(file);
+  renderTabs();
+  switchToFile(file.id);
+});
+
+socket.on('file-renamed', ({ fileId, name }) => {
+  const file = files.find(f => f.id === fileId);
+  if (file) file.name = name;
+  renderTabs(); updateStatus();
+});
+
+socket.on('file-deleted', ({ fileId }) => {
+  const idx = files.findIndex(f => f.id === fileId);
+  if (idx === -1) return;
+  files.splice(idx, 1);
+  if (activeFileId === fileId) {
+    const next = files[Math.min(idx, files.length - 1)];
+    if (next) switchToFile(next.id);
+  }
+  renderTabs();
+});
+
+socket.on('user-joined', ({ users }) => renderUsers(users));
+socket.on('user-left', ({ users, newHostId }) => {
+  renderUsers(users);
+  if (newHostId === socket.id && currentUser && !currentUser.isHost) { currentUser.isHost = true; addHostBadge(); }
+});
+socket.on('error', ({ message }) => showOverlay('Access Denied', message));
+socket.on('disconnect', () => { setConnStatus('Disconnected', true); showOverlay('Disconnected', 'Your connection to the room was lost.'); });
+socket.on('connect_error', () => setConnStatus('Connection error', true));
+
+// ── Public API for inline handlers ────────────────────────────────────────
+window.onLangChange        = (lang) => socket.emit('language-change', { roomName, fileId: activeFileId, language: lang });
+window.copyInviteLink      = () => navigator.clipboard.writeText(location.origin + '/room/' + encodeURIComponent(roomName)).then(() => { const b = document.getElementById('copy-btn'); b.textContent='✓ Copied!'; b.classList.add('copied'); setTimeout(()=>{ b.textContent='⎘ Copy Invite Link'; b.classList.remove('copied'); }, 2000); });
+window.openNewFileDialog   = openNewFileDialog;
+window.closeNewFileDialog  = closeNewFileDialog;
+window.confirmNewFile      = confirmNewFile;
+</script>
+</body>
+</html>
