@@ -21,3 +21,4 @@ export { python }                   from '@codemirror/lang-python';
 export { javascript }               from '@codemirror/lang-javascript';
 export { java }                     from '@codemirror/lang-java';
 export { cpp }                      from '@codemirror/lang-cpp';
+export { csharp }                   from '@replit/codemirror-lang-csharp';

@@ -34,7 +34,8 @@ function defaultFiles() {
     { id:'f2', name:'script.js', code:'// JavaScript\nconsole.log("Hello!");\n',  language:'javascript' },
     { id:'f3', name:'Main.java', code:'// Java\npublic class Main {\n    public static void main(String[] args) {\n        System.out.println("Hello!");\n    }\n}\n', language:'java' },
     { id:'f4', name:'main.cpp',  code:'// C++\n#include <iostream>\nint main() {\n    std::cout << "Hello!" << std::endl;\n    return 0;\n}\n', language:'cpp' },
-    { id:'f5', name:'notes.txt', code:'Your notes here…\n', language:'text' },
+    { id:'f5', name:'Program.cs', code:'// C#\nusing System;\n\nclass Program {\n    static void Main() {\n        Console.WriteLine("Hello!");\n    }\n}\n', language:'csharp' },
+    { id:'f6', name:'notes.txt', code:'Your notes here…\n', language:'text' },
   ];
 }
 
@@ -112,7 +113,7 @@ app.post('/api/create-room', async (req, res) => {
   if (!name)     return res.status(400).json({ error: 'Room name contains no valid characters' });
   if (rooms[name]) return res.status(409).json({ error: 'A room with that name already exists' });
 
-  rooms[name] = { password, hostId:null, users:new Map(), files:defaultFiles(), nextFileId:6 };
+  rooms[name] = { password, hostId:null, users:new Map(), files:defaultFiles(), nextFileId:7 };
   await saveRoom(name);   // persist immediately
   console.log(`[room] Created: ${name}`);
   res.json({ success:true, roomName:name });

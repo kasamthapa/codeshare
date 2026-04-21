@@ -602,6 +602,7 @@
       <option value="javascript">🟨 JavaScript</option>
       <option value="java">☕ Java</option>
       <option value="cpp">⚙️ C++</option>
+      <option value="csharp">💜 C#</option>
       <option value="text">📄 Plain Text</option>
     </select>
 
@@ -697,7 +698,7 @@
 <script>
 'use strict';
 
-const { EditorView, EditorState, Compartment, basicSetup, oneDark, python, javascript, java, cpp } = CM;
+const { EditorView, EditorState, Compartment, basicSetup, oneDark, python, javascript, java, cpp, csharp } = CM;
 
 const roomName = decodeURIComponent(window.location.pathname.split('/room/')[1] || '');
 const password = sessionStorage.getItem('roomPassword');
@@ -712,8 +713,8 @@ let editor         = null;
 let isRemoteChange = false;
 const langComp     = new Compartment();
 
-const LANG_LABELS = { python:'Python', javascript:'JavaScript', java:'Java', cpp:'C++', text:'Plain Text' };
-const LANG_ICONS  = { python:'🐍', javascript:'🟨', java:'☕', cpp:'⚙️', text:'📄' };
+const LANG_LABELS = { python:'Python', javascript:'JavaScript', java:'Java', cpp:'C++', csharp:'C#', text:'Plain Text' };
+const LANG_ICONS  = { python:'🐍', javascript:'🟨', java:'☕', cpp:'⚙️', csharp:'💜', text:'📄' };
 const LANG_SELECT_VALUES = { python:'python', javascript:'javascript', java:'java', cpp:'cpp', text:'text' };
 
 function getLangExt(lang) {
@@ -722,6 +723,7 @@ function getLangExt(lang) {
     case 'javascript': return javascript();
     case 'java':       return java();
     case 'cpp':        return cpp();
+    case 'csharp':     return csharp();
     default:           return [];
   }
 }
