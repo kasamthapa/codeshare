@@ -13,6 +13,7 @@
     "dev": "node server.js"
   },
   "dependencies": {
+    "@replit/codemirror-lang-csharp": "^6.2.0",
     "compression": "^1.8.1",
     "express": "^4.18.2",
     "helmet": "^8.1.0",
@@ -25,7 +26,6 @@
     "@codemirror/lang-javascript": "^6.2.2",
     "@codemirror/lang-python": "^6.1.6",
     "@codemirror/theme-one-dark": "^6.1.2",
-    "@replit/codemirror-lang-csharp": "^6.2.0",
     "codemirror": "^6.0.1",
     "esbuild": "^0.20.0"
   }
