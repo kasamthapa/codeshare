@@ -35,6 +35,8 @@
       --green-bg:  rgba(63,185,80,0.1);
       --red:       #f85149;
       --red-bg:    rgba(248,81,73,0.1);
+      --yellow:    #d29922;
+      --yellow-bg: rgba(210,153,34,0.1);
       --topbar-h:  52px;
       --tabbar-h:  38px;
       --status-h:  24px;
@@ -55,515 +57,411 @@
       align-items: center;
       gap: 0.6rem;
       padding: 0 1rem;
-      overflow: hidden;
+      overflow: visible;
+      position: relative;
+      z-index: 50;
     }
 
-    /* Logo */
     .topbar-logo {
-      display: flex;
-      align-items: center;
-      gap: 0.45rem;
-      flex-shrink: 0;
-      text-decoration: none;
+      display: flex; align-items: center; gap: 0.45rem;
+      flex-shrink: 0; text-decoration: none;
     }
     .topbar-logo-icon {
-      width: 28px;
-      height: 28px;
+      width: 28px; height: 28px;
       background: linear-gradient(135deg, var(--accent) 0%, #9e6bff 100%);
-      border-radius: 7px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
+      border-radius: 7px; display: flex; align-items: center; justify-content: center;
       font-size: 0.85rem;
     }
-    .topbar-logo-name {
-      font-weight: 700;
-      font-size: 0.95rem;
-      color: var(--text);
-    }
+    .topbar-logo-name { font-weight: 700; font-size: 0.95rem; color: var(--text); }
 
     .topbar-sep { width: 1px; height: 24px; background: var(--border); flex-shrink: 0; }
 
     /* Room pill */
     #room-pill {
-      display: flex;
-      align-items: center;
-      gap: 0.4rem;
-      background: var(--bg3);
-      border: 1px solid var(--border);
-      border-radius: 20px;
-      padding: 0.25rem 0.75rem;
-      flex-shrink: 0;
+      display: flex; align-items: center; gap: 0.4rem;
+      background: var(--bg3); border: 1px solid var(--border);
+      border-radius: 20px; padding: 0.25rem 0.75rem; flex-shrink: 0;
     }
     #room-pill-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--green); box-shadow: 0 0 6px var(--green); flex-shrink: 0; }
     #room-name-text { font-size: 0.82rem; font-weight: 600; color: var(--text); }
     .host-badge {
-      font-size: 0.67rem;
-      background: rgba(47,129,247,0.15);
-      color: var(--accent2);
-      border: 1px solid rgba(47,129,247,0.3);
-      border-radius: 12px;
-      padding: 1px 7px;
-      font-weight: 600;
+      font-size: 0.67rem; background: rgba(47,129,247,0.15); color: var(--accent2);
+      border: 1px solid rgba(47,129,247,0.3); border-radius: 12px; padding: 1px 7px; font-weight: 600;
     }
 
     /* Users */
     #users-row { display: flex; align-items: center; gap: 3px; min-width: 0; }
     .avatar {
-      width: 28px;
-      height: 28px;
-      border-radius: 50%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 0.72rem;
-      font-weight: 700;
-      color: #0d1117;
-      flex-shrink: 0;
-      cursor: default;
-      user-select: none;
-      position: relative;
-      border: 2px solid var(--bg2);
-      margin-left: -6px;
-      transition: margin 0.15s;
+      width: 28px; height: 28px; border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 0.72rem; font-weight: 700; color: #0d1117;
+      flex-shrink: 0; cursor: default; user-select: none; position: relative;
+      border: 2px solid var(--bg2); margin-left: -6px; transition: margin 0.15s;
     }
     #users-row .avatar:first-child { margin-left: 0; }
     #users-row:hover .avatar { margin-left: 0; }
     .avatar::after {
-      content: attr(data-tip);
-      position: absolute;
-      top: calc(100% + 8px);
-      left: 50%;
-      transform: translateX(-50%);
-      background: var(--bg3);
-      border: 1px solid var(--border);
-      color: var(--text);
-      font-size: 0.72rem;
-      font-family: inherit;
-      font-weight: 500;
-      padding: 3px 8px;
-      border-radius: 6px;
-      white-space: nowrap;
-      pointer-events: none;
-      opacity: 0;
-      transition: opacity 0.12s;
-      z-index: 100;
+      content: attr(data-tip); position: absolute; top: calc(100% + 8px); left: 50%;
+      transform: translateX(-50%); background: var(--bg3); border: 1px solid var(--border);
+      color: var(--text); font-size: 0.72rem; font-family: inherit; font-weight: 500;
+      padding: 3px 8px; border-radius: 6px; white-space: nowrap;
+      pointer-events: none; opacity: 0; transition: opacity 0.12s; z-index: 100;
     }
     .avatar:hover::after { opacity: 1; }
     .avatar.me { border-color: rgba(255,255,255,0.5); }
 
     #user-count { font-size: 0.75rem; color: var(--text3); white-space: nowrap; flex-shrink: 0; margin-left: 0.5rem; }
-
     .spacer { flex: 1; min-width: 0.25rem; }
+
+    /* Shared button base for topbar buttons */
+    .topbar-btn {
+      display: flex; align-items: center; gap: 0.35rem;
+      background: var(--bg3); color: var(--text2);
+      border: 1px solid var(--border); border-radius: 8px;
+      padding: 0.35rem 0.75rem; font-size: 0.8rem; font-weight: 600;
+      font-family: inherit; cursor: pointer; flex-shrink: 0; white-space: nowrap;
+      transition: border-color 0.15s, color 0.15s, background 0.15s;
+    }
+    .topbar-btn:hover { border-color: var(--border2); color: var(--text); background: var(--bg4); }
 
     /* Lang selector */
     #lang-select {
-      background: var(--bg3);
-      color: var(--text);
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      padding: 0.3rem 0.6rem;
-      font-size: 0.8rem;
-      font-family: inherit;
-      cursor: pointer;
-      flex-shrink: 0;
-      transition: border-color 0.15s;
+      background: var(--bg3); color: var(--text); border: 1px solid var(--border);
+      border-radius: 8px; padding: 0.3rem 0.6rem; font-size: 0.8rem; font-family: inherit;
+      cursor: pointer; flex-shrink: 0; transition: border-color 0.15s;
     }
     #lang-select:focus { outline: none; border-color: var(--accent); }
     #lang-select:hover { border-color: var(--border2); }
 
     /* Copy button */
     #copy-btn {
-      display: flex;
-      align-items: center;
-      gap: 0.35rem;
-      background: var(--accent);
-      color: #fff;
-      border: none;
-      border-radius: 8px;
-      padding: 0.35rem 0.85rem;
-      font-size: 0.8rem;
-      font-weight: 600;
-      font-family: inherit;
-      cursor: pointer;
-      flex-shrink: 0;
-      transition: background 0.15s, box-shadow 0.15s;
-      white-space: nowrap;
+      display: flex; align-items: center; gap: 0.35rem;
+      background: var(--accent); color: #fff; border: none; border-radius: 8px;
+      padding: 0.35rem 0.85rem; font-size: 0.8rem; font-weight: 600; font-family: inherit;
+      cursor: pointer; flex-shrink: 0; transition: background 0.15s, box-shadow 0.15s; white-space: nowrap;
     }
     #copy-btn:hover { background: var(--accent2); box-shadow: 0 2px 10px rgba(47,129,247,0.3); }
     #copy-btn.copied { background: #238636; box-shadow: 0 2px 10px rgba(35,134,54,0.3); }
 
-    /* QR button */
-    #qr-btn {
-      display: flex;
-      align-items: center;
-      gap: 0.35rem;
-      background: var(--bg3);
-      color: var(--text2);
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      padding: 0.35rem 0.75rem;
-      font-size: 0.8rem;
-      font-weight: 600;
-      font-family: inherit;
-      cursor: pointer;
-      flex-shrink: 0;
-      white-space: nowrap;
-      transition: border-color 0.15s, color 0.15s, background 0.15s;
+    /* Request edit access button (guests in view-only mode) */
+    #request-access-btn {
+      display: none;
+      align-items: center; gap: 0.35rem;
+      background: var(--yellow-bg); color: var(--yellow);
+      border: 1px solid rgba(210,153,34,0.35); border-radius: 8px;
+      padding: 0.35rem 0.75rem; font-size: 0.8rem; font-weight: 600;
+      font-family: inherit; cursor: pointer; flex-shrink: 0; white-space: nowrap;
+      transition: background 0.15s, border-color 0.15s;
+      animation: pulseYellow 2s ease-in-out infinite;
     }
-    #qr-btn:hover { border-color: var(--border2); color: var(--text); background: var(--bg4); }
+    #request-access-btn:hover { background: rgba(210,153,34,0.18); border-color: rgba(210,153,34,0.6); }
+    #request-access-btn.pending { opacity: 0.6; cursor: not-allowed; animation: none; }
+    @keyframes pulseYellow {
+      0%, 100% { box-shadow: 0 0 0 0 rgba(210,153,34,0); }
+      50%       { box-shadow: 0 0 0 4px rgba(210,153,34,0.15); }
+    }
+
+    /* ── Access panel (host popover) ─────────────────────────── */
+    #access-wrap { position: relative; flex-shrink: 0; }
+    #access-btn { display: none; } /* hidden until host joins */
+
+    #access-panel {
+      display: none;
+      position: absolute;
+      top: calc(100% + 10px);
+      right: 0;
+      width: 300px;
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      box-shadow: 0 16px 48px rgba(0,0,0,0.5);
+      z-index: 200;
+      overflow: hidden;
+      animation: dialogIn 0.15s ease;
+    }
+    #access-panel.show { display: block; }
+
+    .ap-header {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 0.9rem 1rem 0.75rem;
+      border-bottom: 1px solid var(--border);
+    }
+    .ap-header h4 { font-size: 0.875rem; font-weight: 600; color: var(--text); }
+    .ap-header-close {
+      width: 24px; height: 24px; display: flex; align-items: center; justify-content: center;
+      border-radius: 6px; border: none; background: transparent; color: var(--text3);
+      cursor: pointer; font-size: 0.9rem; transition: background 0.1s, color 0.1s;
+    }
+    .ap-header-close:hover { background: var(--bg3); color: var(--text); }
+
+    .ap-section { padding: 0.75rem 1rem; border-bottom: 1px solid var(--border); }
+    .ap-section:last-child { border-bottom: none; }
+    .ap-label { font-size: 0.72rem; font-weight: 600; color: var(--text3); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 0.6rem; }
+
+    .mode-toggle { display: flex; gap: 0.4rem; }
+    .mode-btn {
+      flex: 1; padding: 0.45rem 0.5rem; border-radius: 8px;
+      border: 1px solid var(--border); background: var(--bg3);
+      color: var(--text2); font-size: 0.78rem; font-weight: 500;
+      font-family: inherit; cursor: pointer; transition: all 0.15s;
+      display: flex; align-items: center; justify-content: center; gap: 0.3rem;
+    }
+    .mode-btn:hover { border-color: var(--border2); color: var(--text); }
+    .mode-btn.active.edit  { background: var(--green-bg); border-color: rgba(63,185,80,0.4); color: var(--green); }
+    .mode-btn.active.view  { background: var(--yellow-bg); border-color: rgba(210,153,34,0.4); color: var(--yellow); }
+
+    #access-user-list { max-height: 220px; overflow-y: auto; }
+    .access-user-item {
+      display: flex; align-items: center; gap: 0.6rem;
+      padding: 0.55rem 1rem;
+      border-bottom: 1px solid var(--border);
+    }
+    .access-user-item:last-child { border-bottom: none; }
+    .aui-avatar {
+      width: 26px; height: 26px; border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 0.68rem; font-weight: 700; color: #0d1117; flex-shrink: 0;
+    }
+    .aui-name { flex: 1; font-size: 0.8rem; color: var(--text); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .aui-badge {
+      font-size: 0.67rem; padding: 1px 6px; border-radius: 10px; font-weight: 600;
+    }
+    .aui-badge.edit { background: var(--green-bg); color: var(--green); border: 1px solid rgba(63,185,80,0.3); }
+    .aui-badge.view { background: var(--yellow-bg); color: var(--yellow); border: 1px solid rgba(210,153,34,0.3); }
+    .aui-badge.host { background: var(--accent-bg); color: var(--accent2); border: 1px solid rgba(47,129,247,0.3); }
+    .aui-action {
+      font-size: 0.72rem; font-weight: 600; font-family: inherit;
+      padding: 0.2rem 0.55rem; border-radius: 6px; cursor: pointer; border: 1px solid; transition: all 0.12s;
+    }
+    .aui-action.grant  { color: var(--green);  border-color: rgba(63,185,80,0.4);   background: var(--green-bg); }
+    .aui-action.grant:hover  { background: rgba(63,185,80,0.2); }
+    .aui-action.revoke { color: var(--red);    border-color: rgba(248,81,73,0.4);   background: var(--red-bg); }
+    .aui-action.revoke:hover { background: rgba(248,81,73,0.2); }
+
+    /* ── Toast notifications ─────────────────────────────────── */
+    #toast-container {
+      position: fixed; top: 1rem; right: 1rem;
+      display: flex; flex-direction: column; gap: 0.6rem;
+      z-index: 1000; pointer-events: none;
+    }
+    .toast {
+      background: var(--bg2); border: 1px solid var(--border);
+      border-radius: 12px; padding: 0.85rem 1rem;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+      min-width: 280px; max-width: 340px;
+      pointer-events: all;
+      animation: toastIn 0.2s ease;
+    }
+    @keyframes toastIn {
+      from { opacity: 0; transform: translateX(20px); }
+      to   { opacity: 1; transform: translateX(0); }
+    }
+    .toast.hide {
+      animation: toastOut 0.2s ease forwards;
+    }
+    @keyframes toastOut {
+      from { opacity: 1; transform: translateX(0); }
+      to   { opacity: 0; transform: translateX(20px); }
+    }
+    .toast-top { display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.5rem; }
+    .toast-icon { font-size: 1rem; flex-shrink: 0; }
+    .toast-title { font-size: 0.82rem; font-weight: 600; color: var(--text); flex: 1; }
+    .toast-msg { font-size: 0.78rem; color: var(--text2); line-height: 1.4; margin-bottom: 0.65rem; }
+    .toast-actions { display: flex; gap: 0.4rem; }
+    .toast-actions button {
+      flex: 1; padding: 0.4rem 0.5rem; border-radius: 7px;
+      border: 1px solid; font-size: 0.78rem; font-weight: 600;
+      font-family: inherit; cursor: pointer; transition: all 0.12s;
+    }
+    .toast-approve { background: var(--green-bg); color: var(--green); border-color: rgba(63,185,80,0.4); }
+    .toast-approve:hover { background: rgba(63,185,80,0.2); }
+    .toast-deny    { background: var(--red-bg);   color: var(--red);   border-color: rgba(248,81,73,0.4); }
+    .toast-deny:hover { background: rgba(248,81,73,0.2); }
+
+    /* View-only banner below tabbar */
+    #readonly-bar {
+      display: none;
+      flex-shrink: 0;
+      background: var(--yellow-bg);
+      border-bottom: 1px solid rgba(210,153,34,0.25);
+      padding: 0.3rem 1rem;
+      font-size: 0.75rem;
+      color: var(--yellow);
+      font-weight: 500;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    #readonly-bar.show { display: flex; }
 
     /* ── QR dialog ───────────────────────────────────────────── */
     #qr-dialog {
-      display: none;
-      position: fixed;
-      inset: 0;
-      background: rgba(0,0,0,0.65);
-      backdrop-filter: blur(6px);
-      z-index: 300;
-      align-items: center;
-      justify-content: center;
+      display: none; position: fixed; inset: 0;
+      background: rgba(0,0,0,0.65); backdrop-filter: blur(6px);
+      z-index: 300; align-items: center; justify-content: center;
     }
     #qr-dialog.show { display: flex; }
     #qr-box {
-      background: var(--bg2);
-      border: 1px solid var(--border);
-      border-radius: 18px;
-      padding: 2rem;
-      text-align: center;
-      width: 90%;
-      max-width: 360px;
-      box-shadow: 0 20px 60px rgba(0,0,0,0.5);
-      animation: dialogIn 0.15s ease;
+      background: var(--bg2); border: 1px solid var(--border); border-radius: 18px;
+      padding: 2rem; text-align: center; width: 90%; max-width: 360px;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.5); animation: dialogIn 0.15s ease;
     }
     #qr-box h3 { font-size: 1rem; margin-bottom: 0.3rem; color: var(--text); }
     #qr-box .qr-sub { font-size: 0.8rem; color: var(--text2); margin-bottom: 1.5rem; }
-    #qr-img-wrap {
-      background: #fff;
-      border-radius: 12px;
-      padding: 1rem;
-      display: inline-block;
-      margin-bottom: 1.25rem;
-    }
+    #qr-img-wrap { background: #fff; border-radius: 12px; padding: 1rem; display: inline-block; margin-bottom: 1.25rem; }
     #qr-img-wrap img { display: block; width: 180px; height: 180px; }
     #qr-url {
-      font-size: 0.72rem;
-      color: var(--text3);
-      font-family: 'Fira Code', monospace;
-      word-break: break-all;
-      margin-bottom: 1.25rem;
-      padding: 0.5rem 0.75rem;
-      background: var(--bg3);
-      border-radius: 8px;
-      border: 1px solid var(--border);
+      font-size: 0.72rem; color: var(--text3); font-family: 'Fira Code', monospace;
+      word-break: break-all; margin-bottom: 1.25rem; padding: 0.5rem 0.75rem;
+      background: var(--bg3); border-radius: 8px; border: 1px solid var(--border);
     }
     #qr-close {
-      width: 100%;
-      padding: 0.6rem;
-      background: var(--bg3);
-      color: var(--text2);
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      font-size: 0.875rem;
-      font-family: inherit;
-      font-weight: 500;
-      cursor: pointer;
-      transition: background 0.12s, color 0.12s;
+      width: 100%; padding: 0.6rem; background: var(--bg3); color: var(--text2);
+      border: 1px solid var(--border); border-radius: 8px; font-size: 0.875rem;
+      font-family: inherit; font-weight: 500; cursor: pointer; transition: background 0.12s, color 0.12s;
     }
     #qr-close:hover { background: var(--bg4); color: var(--text); }
 
     /* ── File tab bar ────────────────────────────────────────── */
     #tabbar {
-      flex-shrink: 0;
-      height: var(--tabbar-h);
-      background: var(--bg2);
-      border-bottom: 1px solid var(--border);
-      display: flex;
-      align-items: stretch;
-      overflow-x: auto;
-      overflow-y: hidden;
-      scrollbar-width: thin;
-      scrollbar-color: var(--border) transparent;
+      flex-shrink: 0; height: var(--tabbar-h); background: var(--bg2);
+      border-bottom: 1px solid var(--border); display: flex; align-items: stretch;
+      overflow-x: auto; overflow-y: hidden; scrollbar-width: thin; scrollbar-color: var(--border) transparent;
     }
     #tabbar::-webkit-scrollbar { height: 3px; }
     #tabbar::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
 
     .tab {
-      display: flex;
-      align-items: center;
-      gap: 0.3rem;
-      padding: 0 0.85rem;
-      min-width: 90px;
-      max-width: 160px;
-      border-right: 1px solid var(--border);
-      cursor: pointer;
-      color: var(--text2);
-      font-size: 0.78rem;
-      white-space: nowrap;
-      position: relative;
-      user-select: none;
-      flex-shrink: 0;
-      transition: background 0.1s, color 0.1s;
+      display: flex; align-items: center; gap: 0.3rem; padding: 0 0.85rem;
+      min-width: 90px; max-width: 160px; border-right: 1px solid var(--border);
+      cursor: pointer; color: var(--text2); font-size: 0.78rem; white-space: nowrap;
+      position: relative; user-select: none; flex-shrink: 0; transition: background 0.1s, color 0.1s;
     }
     .tab:hover { background: var(--bg3); color: var(--text); }
-    .tab.active {
-      background: var(--bg);
-      color: var(--text);
-    }
+    .tab.active { background: var(--bg); color: var(--text); }
     .tab.active::after {
-      content: '';
-      position: absolute;
-      top: 0;
-      left: 0;
-      right: 0;
-      height: 2px;
-      background: var(--accent);
-      border-radius: 0 0 2px 2px;
+      content: ''; position: absolute; top: 0; left: 0; right: 0;
+      height: 2px; background: var(--accent); border-radius: 0 0 2px 2px;
     }
 
     .tab-icon { font-size: 0.82rem; flex-shrink: 0; }
     .tab-name { flex: 1; overflow: hidden; text-overflow: ellipsis; outline: none; }
     .tab-name[contenteditable="true"] {
-      background: var(--bg2);
-      border: 1px solid var(--accent);
-      border-radius: 3px;
-      padding: 0 4px;
-      cursor: text;
-      min-width: 60px;
+      background: var(--bg2); border: 1px solid var(--accent);
+      border-radius: 3px; padding: 0 4px; cursor: text; min-width: 60px;
     }
-
     .tab-close {
-      width: 16px;
-      height: 16px;
-      display: none;
-      align-items: center;
-      justify-content: center;
-      border-radius: 4px;
-      font-size: 0.75rem;
-      flex-shrink: 0;
-      color: var(--text3);
+      width: 16px; height: 16px; display: none; align-items: center; justify-content: center;
+      border-radius: 4px; font-size: 0.75rem; flex-shrink: 0; color: var(--text3);
       transition: background 0.1s, color 0.1s;
     }
     .tab:hover .tab-close, .tab.active .tab-close { display: flex; }
     .tab-close:hover { background: var(--border2); color: var(--text); }
 
     #new-file-btn {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      width: 38px;
-      cursor: pointer;
-      color: var(--text3);
-      font-size: 1rem;
-      flex-shrink: 0;
-      transition: color 0.1s, background 0.1s;
+      display: flex; align-items: center; justify-content: center;
+      width: 38px; cursor: pointer; color: var(--text3); font-size: 1rem;
+      flex-shrink: 0; transition: color 0.1s, background 0.1s;
     }
     #new-file-btn:hover { color: var(--text); background: var(--bg3); }
 
     /* ── Editor ──────────────────────────────────────────────── */
-    #editor-wrap { flex: 1; overflow: hidden; display: flex; flex-direction: column; min-height: 0; }
+    #editor-wrap { flex: 1; overflow: hidden; display: flex; flex-direction: column; min-height: 0; position: relative; }
     .cm-editor { height: 100% !important; font-size: 14px !important; background: var(--bg) !important; }
     .cm-scroller { overflow: auto !important; font-family: 'Fira Code', 'Cascadia Code', 'Consolas', 'Menlo', monospace !important; }
 
     /* ── Status bar ──────────────────────────────────────────── */
     #statusbar {
-      flex-shrink: 0;
-      height: var(--status-h);
-      background: var(--accent);
-      display: flex;
-      align-items: center;
-      padding: 0 1rem;
-      gap: 1.25rem;
-      font-size: 0.7rem;
-      color: rgba(255,255,255,0.9);
-      font-weight: 500;
+      flex-shrink: 0; height: var(--status-h); background: var(--accent);
+      display: flex; align-items: center; padding: 0 1rem; gap: 1.25rem;
+      font-size: 0.7rem; color: rgba(255,255,255,0.9); font-weight: 500;
     }
     #status-conn { margin-left: auto; }
     #status-conn.disconnected { color: #ffa0a0; }
+    .status-item { display: flex; align-items: center; gap: 0.3rem; opacity: 0.85; }
+    .status-credit { margin-left: auto; font-size: 0.67rem; opacity: 0.65; white-space: nowrap; }
 
-    .status-item {
-      display: flex;
-      align-items: center;
-      gap: 0.3rem;
-      opacity: 0.85;
-    }
-
-    /* Footer credit in status bar */
-    .status-credit {
-      margin-left: auto;
-      font-size: 0.67rem;
-      opacity: 0.65;
-      white-space: nowrap;
-    }
-
-    /* ── Overlay (error / disconnected) ──────────────────────── */
+    /* ── Overlay ─────────────────────────────────────────────── */
     #overlay {
-      display: none;
-      position: fixed;
-      inset: 0;
-      background: rgba(0,0,0,0.75);
-      backdrop-filter: blur(4px);
-      z-index: 200;
-      align-items: center;
-      justify-content: center;
+      display: none; position: fixed; inset: 0;
+      background: rgba(0,0,0,0.75); backdrop-filter: blur(4px);
+      z-index: 200; align-items: center; justify-content: center;
     }
     #overlay.show { display: flex; }
     #overlay-box {
-      background: var(--bg2);
-      border: 1px solid var(--border);
-      border-radius: 16px;
-      padding: 2.5rem;
-      text-align: center;
-      max-width: 400px;
-      width: 90%;
+      background: var(--bg2); border: 1px solid var(--border); border-radius: 16px;
+      padding: 2.5rem; text-align: center; max-width: 400px; width: 90%;
       box-shadow: 0 20px 60px rgba(0,0,0,0.5);
     }
     #overlay-box .overlay-icon { font-size: 2.5rem; margin-bottom: 1rem; }
     #overlay-box h2 { color: var(--red); margin-bottom: 0.6rem; font-size: 1.15rem; }
     #overlay-box p { color: var(--text2); margin-bottom: 1.5rem; font-size: 0.875rem; line-height: 1.5; }
     #overlay-box a {
-      display: inline-flex;
-      align-items: center;
-      gap: 0.35rem;
-      color: #fff;
-      background: var(--accent);
-      text-decoration: none;
-      font-size: 0.875rem;
-      font-weight: 600;
-      padding: 0.6rem 1.25rem;
-      border-radius: 8px;
-      transition: background 0.15s;
+      display: inline-flex; align-items: center; gap: 0.35rem;
+      color: #fff; background: var(--accent); text-decoration: none;
+      font-size: 0.875rem; font-weight: 600; padding: 0.6rem 1.25rem;
+      border-radius: 8px; transition: background 0.15s;
     }
     #overlay-box a:hover { background: var(--accent2); }
 
-    /* ── Delete confirm dialog ───────────────────────────────── */
-    #delete-dialog {
-      display: none;
-      position: fixed;
-      inset: 0;
-      background: rgba(0,0,0,0.6);
-      backdrop-filter: blur(4px);
-      z-index: 300;
-      align-items: center;
-      justify-content: center;
-    }
-    #delete-dialog.show { display: flex; }
-    #delete-box {
-      background: var(--bg2);
-      border: 1px solid var(--border);
-      border-radius: 14px;
-      padding: 1.75rem;
-      min-width: 340px;
-      width: 90%;
-      max-width: 400px;
-      box-shadow: 0 16px 48px rgba(0,0,0,0.5);
-      animation: dialogIn 0.15s ease;
-    }
+    /* ── Shared dialog styles ────────────────────────────────── */
     @keyframes dialogIn {
       from { opacity: 0; transform: scale(0.96) translateY(6px); }
-      to   { opacity: 1; transform: scale(1)    translateY(0);   }
+      to   { opacity: 1; transform: scale(1) translateY(0); }
     }
-    #delete-box .delete-icon {
-      width: 40px; height: 40px;
-      background: var(--red-bg);
-      border: 1px solid rgba(248,81,73,0.25);
-      border-radius: 10px;
+    .modal-backdrop {
+      display: none; position: fixed; inset: 0;
+      background: rgba(0,0,0,0.6); backdrop-filter: blur(4px);
+      z-index: 300; align-items: center; justify-content: center;
+    }
+    .modal-backdrop.show { display: flex; }
+    .modal-box {
+      background: var(--bg2); border: 1px solid var(--border); border-radius: 14px;
+      padding: 1.75rem; min-width: 340px; width: 90%; max-width: 400px;
+      box-shadow: 0 16px 48px rgba(0,0,0,0.5); animation: dialogIn 0.15s ease;
+    }
+    .modal-icon {
+      width: 40px; height: 40px; border-radius: 10px;
       display: flex; align-items: center; justify-content: center;
-      font-size: 1.1rem;
-      margin-bottom: 1rem;
+      font-size: 1.1rem; margin-bottom: 1rem;
     }
-    #delete-box h3 { font-size: 0.95rem; color: var(--text); margin-bottom: 0.35rem; }
-    #delete-box p  { font-size: 0.82rem; color: var(--text2); line-height: 1.5; margin-bottom: 1.25rem; }
-    #delete-box p strong { color: var(--text); }
-    #delete-box .dialog-btns button { padding: 0.5rem 1.1rem; border-radius: 8px; border: 1px solid var(--border); cursor: pointer; font-size: 0.85rem; font-family: inherit; font-weight: 500; transition: background 0.12s, border-color 0.12s; }
-    .btn-delete { background: var(--red); color: #fff !important; border-color: transparent !important; }
-    .btn-delete:hover { background: #ff6b63 !important; }
-
-    /* ── New-file dialog ─────────────────────────────────────── */
-    #new-file-dialog {
-      display: none;
-      position: fixed;
-      inset: 0;
-      background: rgba(0,0,0,0.6);
-      backdrop-filter: blur(4px);
-      z-index: 300;
-      align-items: center;
-      justify-content: center;
-    }
-    #new-file-dialog.show { display: flex; }
-    #new-file-box {
-      background: var(--bg2);
-      border: 1px solid var(--border);
-      border-radius: 14px;
-      padding: 1.75rem;
-      min-width: 340px;
-      width: 90%;
-      max-width: 400px;
-      box-shadow: 0 16px 48px rgba(0,0,0,0.5);
-    }
-    #new-file-box h3 {
-      margin-bottom: 0.3rem;
-      font-size: 1rem;
-      color: var(--text);
-    }
-    #new-file-box p {
-      font-size: 0.8rem;
-      color: var(--text2);
-      margin-bottom: 1.1rem;
-    }
-    #new-file-box input {
-      width: 100%;
-      padding: 0.6rem 0.85rem;
-      background: var(--bg3);
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      color: var(--text);
-      font-size: 0.875rem;
-      font-family: inherit;
-      margin-bottom: 1.1rem;
+    .modal-icon.red    { background: var(--red-bg);    border: 1px solid rgba(248,81,73,0.25); }
+    .modal-icon.green  { background: var(--green-bg);  border: 1px solid rgba(63,185,80,0.25); }
+    .modal-icon.blue   { background: var(--accent-bg); border: 1px solid rgba(47,129,247,0.25); }
+    .modal-box h3 { font-size: 0.95rem; color: var(--text); margin-bottom: 0.35rem; }
+    .modal-box p  { font-size: 0.82rem; color: var(--text2); line-height: 1.5; margin-bottom: 1.25rem; }
+    .modal-box p strong { color: var(--text); }
+    .modal-input {
+      width: 100%; padding: 0.6rem 0.85rem; background: var(--bg3);
+      border: 1px solid var(--border); border-radius: 8px; color: var(--text);
+      font-size: 0.875rem; font-family: inherit; margin-bottom: 1.1rem;
       transition: border-color 0.15s, box-shadow 0.15s;
     }
-    #new-file-box input:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px rgba(47,129,247,0.15); }
-    #new-file-box input::placeholder { color: var(--text3); }
-
+    .modal-input:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px rgba(47,129,247,0.15); }
+    .modal-input::placeholder { color: var(--text3); }
     .dialog-btns { display: flex; gap: 0.5rem; justify-content: flex-end; }
     .dialog-btns button {
-      padding: 0.5rem 1.1rem;
-      border-radius: 8px;
-      border: 1px solid var(--border);
-      cursor: pointer;
-      font-size: 0.85rem;
-      font-family: inherit;
-      font-weight: 500;
+      padding: 0.5rem 1.1rem; border-radius: 8px; border: 1px solid var(--border);
+      cursor: pointer; font-size: 0.85rem; font-family: inherit; font-weight: 500;
       transition: background 0.12s, border-color 0.12s;
     }
-    .btn-cancel { background: var(--bg3); color: var(--text2); }
-    .btn-cancel:hover { background: var(--bg4); color: var(--text); }
+    .btn-cancel  { background: var(--bg3); color: var(--text2); }
+    .btn-cancel:hover  { background: var(--bg4); color: var(--text); }
     .btn-confirm { background: var(--accent); color: #fff; border-color: transparent; }
     .btn-confirm:hover { background: var(--accent2); }
+    .btn-delete  { background: var(--red); color: #fff !important; border-color: transparent !important; }
+    .btn-delete:hover  { background: #ff6b63 !important; }
 
     /* ── Splash ──────────────────────────────────────────────── */
     #splash {
-      position: fixed;
-      inset: 0;
-      background: var(--bg);
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      gap: 1rem;
-      z-index: 100;
+      position: fixed; inset: 0; background: var(--bg);
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      gap: 1rem; z-index: 100;
     }
     #splash .splash-logo {
-      width: 52px;
-      height: 52px;
+      width: 52px; height: 52px;
       background: linear-gradient(135deg, var(--accent) 0%, #9e6bff 100%);
-      border-radius: 14px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 1.5rem;
-      box-shadow: 0 8px 24px rgba(47,129,247,0.3);
+      border-radius: 14px; display: flex; align-items: center; justify-content: center;
+      font-size: 1.5rem; box-shadow: 0 8px 24px rgba(47,129,247,0.3);
       animation: pulse 1.5s ease-in-out infinite;
     }
     #splash p { font-size: 0.875rem; color: var(--text2); }
@@ -597,6 +495,35 @@
 
     <div class="spacer"></div>
 
+    <!-- Request edit access (shown to view-only guests) -->
+    <button id="request-access-btn" onclick="requestEditAccess()">
+      ✋ Request Edit Access
+    </button>
+
+    <!-- Access control panel (shown to host only) -->
+    <div id="access-wrap">
+      <button id="access-btn" class="topbar-btn" onclick="toggleAccessPanel()">
+        🔐 <span id="access-btn-label">Access</span>
+      </button>
+      <div id="access-panel">
+        <div class="ap-header">
+          <h4>🔐 Room Access</h4>
+          <button class="ap-header-close" onclick="closeAccessPanel()">✕</button>
+        </div>
+        <div class="ap-section">
+          <div class="ap-label">Default for new joiners</div>
+          <div class="mode-toggle">
+            <button class="mode-btn edit" id="mode-edit-btn" onclick="setAccessMode('edit')">✏️ All can edit</button>
+            <button class="mode-btn view" id="mode-view-btn" onclick="setAccessMode('view')">👁 View only</button>
+          </div>
+        </div>
+        <div class="ap-section">
+          <div class="ap-label">Users</div>
+          <div id="access-user-list"></div>
+        </div>
+      </div>
+    </div>
+
     <select id="lang-select" onchange="onLangChange(this.value)">
       <option value="python">🐍 Python</option>
       <option value="javascript">🟨 JavaScript</option>
@@ -606,7 +533,7 @@
       <option value="text">📄 Plain Text</option>
     </select>
 
-    <button id="qr-btn" onclick="openQrDialog()" title="Show QR code — students scan to join">
+    <button class="topbar-btn" id="qr-btn" onclick="openQrDialog()" title="Show QR code — students scan to join">
       <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
         <rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/>
         <rect x="5" y="5" width="3" height="3" fill="currentColor" stroke="none"/><rect x="16" y="5" width="3" height="3" fill="currentColor" stroke="none"/><rect x="5" y="16" width="3" height="3" fill="currentColor" stroke="none"/>
@@ -626,17 +553,25 @@
     <div id="new-file-btn" title="New file (Ctrl+N)" onclick="openNewFileDialog()">＋</div>
   </div>
 
+  <!-- View-only banner -->
+  <div id="readonly-bar">
+    👁 You are in <strong style="margin:0 3px">view-only</strong> mode — click "Request Edit Access" to ask the host for permission to edit.
+  </div>
+
   <!-- Editor -->
   <div id="editor-wrap"></div>
 
   <!-- Status bar -->
   <div id="statusbar">
     <span class="status-item">📄 <span id="status-file">—</span></span>
-    <span class="status-item">   <span id="status-lang">—</span></span>
+    <span class="status-item"><span id="status-lang">—</span></span>
     <span class="status-credit">Made with ♥ by Kasam Thapa Magar</span>
     <span id="status-conn" class="status-item">● Connecting…</span>
   </div>
 </div>
+
+<!-- Toast container -->
+<div id="toast-container"></div>
 
 <!-- Error / disconnect overlay -->
 <div id="overlay">
@@ -649,11 +584,11 @@
 </div>
 
 <!-- New file dialog -->
-<div id="new-file-dialog">
-  <div id="new-file-box">
+<div id="new-file-dialog" class="modal-backdrop">
+  <div class="modal-box">
     <h3>Create New File</h3>
     <p>Give your file a name with an extension, e.g. <code style="color:var(--accent2);font-size:0.8em">utils.py</code></p>
-    <input id="new-file-name" type="text" placeholder="e.g. utils.py" autocomplete="off" spellcheck="false" />
+    <input id="new-file-name" class="modal-input" type="text" placeholder="e.g. utils.py" autocomplete="off" spellcheck="false" />
     <div class="dialog-btns">
       <button class="btn-cancel" onclick="closeNewFileDialog()">Cancel</button>
       <button class="btn-confirm" onclick="confirmNewFile()">Create File</button>
@@ -666,18 +601,16 @@
   <div id="qr-box">
     <h3>Scan to Join</h3>
     <p class="qr-sub">Point your phone camera at this code to join the room instantly</p>
-    <div id="qr-img-wrap">
-      <img id="qr-img" src="" alt="QR Code" />
-    </div>
+    <div id="qr-img-wrap"><img id="qr-img" src="" alt="QR Code" /></div>
     <div id="qr-url"></div>
     <button id="qr-close" onclick="closeQrDialog()">Close</button>
   </div>
 </div>
 
 <!-- Delete confirm dialog -->
-<div id="delete-dialog">
-  <div id="delete-box">
-    <div class="delete-icon">🗑️</div>
+<div id="delete-dialog" class="modal-backdrop">
+  <div class="modal-box">
+    <div class="modal-icon red">🗑️</div>
     <h3>Delete File?</h3>
     <p>Are you sure you want to delete <strong id="delete-file-name"></strong>? This action cannot be undone.</p>
     <div class="dialog-btns">
@@ -711,11 +644,15 @@ let files          = [];
 let activeFileId   = null;
 let editor         = null;
 let isRemoteChange = false;
-const langComp     = new Compartment();
+let myCanEdit      = true;   // tracks whether I have edit access
+let roomUsers      = [];     // latest user list (for access panel)
+let defaultAccess  = 'edit'; // current room default
+
+const langComp = new Compartment();
+const editComp = new Compartment(); // controls editor read-only state
 
 const LANG_LABELS = { python:'Python', javascript:'JavaScript', java:'Java', cpp:'C++', csharp:'C#', text:'Plain Text' };
 const LANG_ICONS  = { python:'🐍', javascript:'🟨', java:'☕', cpp:'⚙️', csharp:'💜', text:'📄' };
-const LANG_SELECT_VALUES = { python:'python', javascript:'javascript', java:'java', cpp:'cpp', text:'text' };
 
 function getLangExt(lang) {
   switch(lang) {
@@ -738,8 +675,9 @@ function initEditor(code, lang) {
       extensions: [
         basicSetup, oneDark,
         langComp.of(getLangExt(lang)),
+        editComp.of(EditorView.editable.of(myCanEdit)),
         EditorView.updateListener.of((u) => {
-          if (!u.docChanged || isRemoteChange) return;
+          if (!u.docChanged || isRemoteChange || !myCanEdit) return;
           socket.emit('code-change', { roomName, fileId: activeFileId, code: u.state.doc.toString() });
         }),
       ],
@@ -760,6 +698,20 @@ function applyLang(lang) {
   editor.dispatch({ effects: langComp.reconfigure(getLangExt(lang)) });
 }
 
+function setEditability(canEdit) {
+  myCanEdit = canEdit;
+  if (editor) editor.dispatch({ effects: editComp.reconfigure(EditorView.editable.of(canEdit)) });
+  // Show/hide view-only UI
+  document.getElementById('readonly-bar').classList.toggle('show', !canEdit);
+  const reqBtn = document.getElementById('request-access-btn');
+  if (!currentUser?.isHost) {
+    reqBtn.style.display = canEdit ? 'none' : 'flex';
+    if (canEdit) reqBtn.classList.remove('pending');
+  }
+  // Update language select disabled state
+  document.getElementById('lang-select').disabled = !canEdit;
+}
+
 // ── Tabs ──────────────────────────────────────────────────────────────────
 function renderTabs() {
   const bar    = document.getElementById('tabbar');
@@ -778,8 +730,8 @@ function renderTabs() {
     const nameEl = document.createElement('span');
     nameEl.className = 'tab-name';
     nameEl.textContent = file.name;
-    nameEl.title = 'Double-click to rename';
-    nameEl.addEventListener('dblclick', (e) => { e.stopPropagation(); startRename(file.id, nameEl); });
+    nameEl.title = myCanEdit ? 'Double-click to rename' : 'View only';
+    if (myCanEdit) nameEl.addEventListener('dblclick', (e) => { e.stopPropagation(); startRename(file.id, nameEl); });
 
     tab.addEventListener('click', () => {
       if (nameEl.contentEditable === 'true') return;
@@ -789,15 +741,21 @@ function renderTabs() {
     const closeBtn = document.createElement('span');
     closeBtn.className = 'tab-close';
     closeBtn.innerHTML = '✕';
+    closeBtn.style.display = myCanEdit ? '' : 'none';
     closeBtn.title = files.length > 1 ? 'Delete file' : 'Cannot delete last file';
     closeBtn.addEventListener('click', (e) => { e.stopPropagation(); deleteFile(file.id); });
 
-    tab.appendChild(icon); tab.appendChild(nameEl); tab.appendChild(closeBtn);
+    tab.appendChild(icon); tab.appendChild(nameEl);
+    if (myCanEdit) tab.appendChild(closeBtn);
     bar.insertBefore(tab, newBtn);
   });
+
+  // Show/hide new file button
+  newBtn.style.display = myCanEdit ? '' : 'none';
 }
 
 function startRename(fileId, nameEl) {
+  if (!myCanEdit) return;
   const original = nameEl.textContent;
   nameEl.contentEditable = 'true';
   nameEl.focus();
@@ -826,7 +784,7 @@ function startRename(fileId, nameEl) {
 function switchToFile(fileId) {
   const file = files.find(f => f.id === fileId);
   if (!file || file.id === activeFileId) return;
-  if (activeFileId && editor) {
+  if (activeFileId && editor && myCanEdit) {
     const cur = files.find(f => f.id === activeFileId);
     if (cur) cur.code = editor.state.doc.toString();
   }
@@ -838,9 +796,8 @@ function switchToFile(fileId) {
 }
 
 let pendingDeleteId = null;
-
 function deleteFile(fileId) {
-  if (files.length <= 1) return;
+  if (!myCanEdit || files.length <= 1) return;
   const file = files.find(f => f.id === fileId);
   if (!file) return;
   pendingDeleteId = fileId;
@@ -862,6 +819,7 @@ document.getElementById('delete-dialog').addEventListener('click', (e) => {
 
 // ── Users ─────────────────────────────────────────────────────────────────
 function renderUsers(users) {
+  roomUsers = users;
   const row = document.getElementById('users-row');
   row.innerHTML = '';
   users.forEach((u) => {
@@ -869,10 +827,12 @@ function renderUsers(users) {
     av.className = 'avatar' + (currentUser && u.id === currentUser.id ? ' me' : '');
     av.style.background = u.color;
     av.textContent = (u.username||'?')[0].toUpperCase();
-    av.setAttribute('data-tip', u.username + (u.isHost ? ' 👑' : ''));
+    const accessTip = u.isHost ? ' 👑' : (u.canEdit ? ' ✏️' : ' 👁');
+    av.setAttribute('data-tip', u.username + accessTip);
     row.appendChild(av);
   });
   document.getElementById('user-count').textContent = users.length + ' online';
+  if (currentUser?.isHost) renderAccessPanel();
 }
 
 function updateStatus() {
@@ -883,12 +843,13 @@ function updateStatus() {
 
 function setConnStatus(text, isErr) {
   const el = document.getElementById('status-conn');
-  el.textContent = (isErr ? '● ' : '● ') + text;
+  el.textContent = '● ' + text;
   el.classList.toggle('disconnected', isErr);
 }
 
-// ── Dialog ────────────────────────────────────────────────────────────────
+// ── New file dialog ───────────────────────────────────────────────────────
 function openNewFileDialog() {
+  if (!myCanEdit) return;
   document.getElementById('new-file-name').value = '';
   document.getElementById('new-file-dialog').classList.add('show');
   setTimeout(() => document.getElementById('new-file-name').focus(), 50);
@@ -908,19 +869,6 @@ document.getElementById('new-file-dialog').addEventListener('click', (e) => {
   if (e.target === document.getElementById('new-file-dialog')) closeNewFileDialog();
 });
 
-function showOverlay(title, msg) {
-  document.getElementById('overlay-title').textContent = title;
-  document.getElementById('overlay-msg').textContent   = msg;
-  document.getElementById('overlay').classList.add('show');
-}
-
-function addHostBadge() {
-  if (document.querySelector('.host-badge')) return;
-  const b = document.createElement('span');
-  b.className = 'host-badge'; b.textContent = '👑 host';
-  document.getElementById('room-pill').appendChild(b);
-}
-
 // ── QR dialog ─────────────────────────────────────────────────────────────
 function openQrDialog() {
   const url = location.origin + '/room/' + encodeURIComponent(roomName);
@@ -934,14 +882,151 @@ document.getElementById('qr-dialog').addEventListener('click', (e) => {
   if (e.target === document.getElementById('qr-dialog')) closeQrDialog();
 });
 
+// ── Overlay ───────────────────────────────────────────────────────────────
+function showOverlay(title, msg) {
+  document.getElementById('overlay-title').textContent = title;
+  document.getElementById('overlay-msg').textContent   = msg;
+  document.getElementById('overlay').classList.add('show');
+}
+
+function addHostBadge() {
+  if (document.querySelector('.host-badge')) return;
+  const b = document.createElement('span');
+  b.className = 'host-badge'; b.textContent = '👑 host';
+  document.getElementById('room-pill').appendChild(b);
+}
+
+// ── Access panel (host only) ──────────────────────────────────────────────
+function toggleAccessPanel() {
+  document.getElementById('access-panel').classList.toggle('show');
+}
+function closeAccessPanel() {
+  document.getElementById('access-panel').classList.remove('show');
+}
+
+function setAccessMode(mode) {
+  socket.emit('set-default-access', { roomName, access: mode });
+  closeAccessPanel();
+}
+
+function renderAccessPanel() {
+  // Update mode buttons
+  document.getElementById('mode-edit-btn').classList.toggle('active', defaultAccess === 'edit');
+  document.getElementById('mode-view-btn').classList.toggle('active', defaultAccess === 'view');
+
+  // Update access btn label
+  document.getElementById('access-btn-label').textContent =
+    defaultAccess === 'view' ? 'View Only' : 'All can edit';
+
+  // Render user list
+  const list = document.getElementById('access-user-list');
+  list.innerHTML = '';
+  roomUsers.forEach((u) => {
+    const item = document.createElement('div');
+    item.className = 'access-user-item';
+
+    const av = document.createElement('div');
+    av.className = 'aui-avatar';
+    av.style.background = u.color;
+    av.textContent = (u.username||'?')[0].toUpperCase();
+
+    const name = document.createElement('div');
+    name.className = 'aui-name';
+    name.textContent = u.username;
+
+    const badge = document.createElement('span');
+    badge.className = 'aui-badge';
+    if (u.isHost) {
+      badge.classList.add('host'); badge.textContent = '👑 host';
+    } else if (u.canEdit) {
+      badge.classList.add('edit'); badge.textContent = '✏️ edit';
+    } else {
+      badge.classList.add('view'); badge.textContent = '👁 view';
+    }
+
+    item.appendChild(av); item.appendChild(name); item.appendChild(badge);
+
+    // Grant / Revoke button (not for host)
+    if (!u.isHost && currentUser && u.id !== currentUser.id) {
+      const btn = document.createElement('button');
+      btn.className = 'aui-action';
+      if (u.canEdit) {
+        btn.classList.add('revoke'); btn.textContent = 'Revoke';
+        btn.onclick = () => { socket.emit('revoke-edit', { roomName, userId: u.id }); closeAccessPanel(); };
+      } else {
+        btn.classList.add('grant'); btn.textContent = 'Grant';
+        btn.onclick = () => { socket.emit('grant-edit', { roomName, userId: u.id }); closeAccessPanel(); };
+      }
+      item.appendChild(btn);
+    }
+
+    list.appendChild(item);
+  });
+}
+
+// ── Request edit access (guests) ──────────────────────────────────────────
+function requestEditAccess() {
+  const btn = document.getElementById('request-access-btn');
+  if (btn.classList.contains('pending')) return;
+  socket.emit('request-edit', { roomName });
+  btn.classList.add('pending');
+  btn.textContent = '⏳ Request Sent…';
+}
+
+// ── Toast system ──────────────────────────────────────────────────────────
+function showToast({ icon, title, msg, actions, duration = 5000 }) {
+  const container = document.getElementById('toast-container');
+  const toast = document.createElement('div');
+  toast.className = 'toast';
+
+  const top = document.createElement('div');
+  top.className = 'toast-top';
+  const iconEl = document.createElement('span'); iconEl.className = 'toast-icon'; iconEl.textContent = icon;
+  const titleEl = document.createElement('span'); titleEl.className = 'toast-title'; titleEl.textContent = title;
+  top.appendChild(iconEl); top.appendChild(titleEl);
+
+  const msgEl = document.createElement('p'); msgEl.className = 'toast-msg'; msgEl.textContent = msg;
+
+  toast.appendChild(top); toast.appendChild(msgEl);
+
+  if (actions && actions.length) {
+    const actionsEl = document.createElement('div');
+    actionsEl.className = 'toast-actions';
+    actions.forEach(({ label, cls, onClick }) => {
+      const btn = document.createElement('button');
+      btn.className = cls; btn.textContent = label;
+      btn.onclick = () => { onClick(); dismissToast(toast); };
+      actionsEl.appendChild(btn);
+    });
+    toast.appendChild(actionsEl);
+  }
+
+  container.appendChild(toast);
+
+  if (duration) setTimeout(() => dismissToast(toast), duration);
+  return toast;
+}
+
+function dismissToast(toast) {
+  toast.classList.add('hide');
+  setTimeout(() => toast.remove(), 250);
+}
+
 // ── Keyboard shortcuts ────────────────────────────────────────────────────
 document.addEventListener('keydown', (e) => {
   if ((e.ctrlKey || e.metaKey) && e.key === 'n') { e.preventDefault(); openNewFileDialog(); }
   if (e.key === 'Escape') {
-    if (document.getElementById('qr-dialog').classList.contains('show'))     closeQrDialog();
-    if (document.getElementById('delete-dialog').classList.contains('show')) closeDeleteDialog();
-    if (document.getElementById('new-file-dialog').classList.contains('show')) closeNewFileDialog();
+    closeAccessPanel();
+    closeQrDialog();
+    closeDeleteDialog();
+    closeNewFileDialog();
   }
+});
+
+// Close access panel when clicking outside
+document.addEventListener('click', (e) => {
+  const wrap = document.getElementById('access-wrap');
+  if (!wrap.contains(e.target)) closeAccessPanel();
 });
 
 // ── Socket ────────────────────────────────────────────────────────────────
@@ -952,13 +1037,24 @@ socket.on('connect', () => {
   setConnStatus('Connected', false);
 });
 
-socket.on('room-state', ({ files: sf, users, currentUser: me }) => {
+socket.on('room-state', ({ files: sf, users, currentUser: me, defaultAccess: da }) => {
   currentUser = me; files = sf; activeFileId = files[0]?.id ?? null;
+  defaultAccess = da;
+  myCanEdit = me.canEdit;
+
   document.title = roomName + ' — CodeShare';
   document.getElementById('room-name-text').textContent = roomName;
-  if (me.isHost) addHostBadge();
+
+  if (me.isHost) {
+    addHostBadge();
+    document.getElementById('access-btn').style.display = 'flex';
+  }
+
   const first = files[0];
   if (first) { initEditor(first.code, first.language); document.getElementById('lang-select').value = first.language; }
+  else initEditor('', 'text');
+
+  setEditability(me.canEdit);
   renderTabs(); renderUsers(users); updateStatus();
   document.getElementById('splash').style.display = 'none';
 });
@@ -974,19 +1070,11 @@ socket.on('language-change', ({ fileId, language }) => {
   const file = files.find(f => f.id === fileId);
   if (!file) return;
   file.language = language;
-  if (fileId === activeFileId) {
-    applyLang(language);
-    document.getElementById('lang-select').value = language;
-    updateStatus();
-  }
+  if (fileId === activeFileId) { applyLang(language); document.getElementById('lang-select').value = language; updateStatus(); }
   renderTabs();
 });
 
-socket.on('file-created', ({ file }) => {
-  files.push(file);
-  renderTabs();
-  switchToFile(file.id);
-});
+socket.on('file-created', ({ file }) => { files.push(file); renderTabs(); switchToFile(file.id); });
 
 socket.on('file-renamed', ({ fileId, name }) => {
   const file = files.find(f => f.id === fileId);
@@ -1006,24 +1094,86 @@ socket.on('file-deleted', ({ fileId }) => {
 });
 
 socket.on('user-joined', ({ users }) => renderUsers(users));
-socket.on('user-left', ({ users, newHostId }) => {
+socket.on('user-left',   ({ users, newHostId }) => {
   renderUsers(users);
   if (newHostId === socket.id && currentUser && !currentUser.isHost) {
-    currentUser.isHost = true; addHostBadge();
+    currentUser.isHost = true; currentUser.canEdit = true;
+    addHostBadge();
+    setEditability(true);
+    document.getElementById('access-btn').style.display = 'flex';
+    showToast({ icon: '👑', title: 'You are now the host', msg: 'The previous host left. You now control room access.', duration: 5000 });
   }
 });
-socket.on('error',          ({ message }) => showOverlay('Access Denied', message));
-socket.on('disconnect',     ()            => { setConnStatus('Disconnected', true); showOverlay('Disconnected', 'Your connection to the room was lost. Please go back and rejoin.'); });
-socket.on('connect_error',  ()            => setConnStatus('Connection error', true));
+
+// ── Access control socket events ──────────────────────────────────────────
+
+// Room default access mode changed by host
+socket.on('access-mode-changed', ({ defaultAccess: da, users }) => {
+  defaultAccess = da;
+  renderUsers(users);
+  // Update my canEdit based on server's recomputed user list
+  const me = users.find(u => u.id === socket.id);
+  if (me) setEditability(me.canEdit);
+  if (currentUser?.isHost) renderAccessPanel();
+});
+
+// User list updated (grant/revoke happened)
+socket.on('user-access-updated', ({ users }) => {
+  renderUsers(users);
+  const me = users.find(u => u.id === socket.id);
+  if (me && me.canEdit !== myCanEdit) setEditability(me.canEdit);
+  if (currentUser?.isHost) renderAccessPanel();
+});
+
+// Host receives an edit request from a guest
+socket.on('edit-requested', ({ userId, username: reqUser }) => {
+  showToast({
+    icon: '✋',
+    title: 'Edit access requested',
+    msg: `${reqUser} wants to edit in this room.`,
+    duration: 0, // stays until acted upon
+    actions: [
+      { label: '✓ Approve', cls: 'toast-approve', onClick: () => socket.emit('grant-edit', { roomName, userId }) },
+      { label: '✕ Deny',   cls: 'toast-deny',    onClick: () => socket.emit('deny-edit',  { roomName, userId }) },
+    ],
+  });
+});
+
+// I was granted edit access
+socket.on('edit-access-granted', () => {
+  setEditability(true);
+  const reqBtn = document.getElementById('request-access-btn');
+  reqBtn.style.display = 'none';
+  reqBtn.classList.remove('pending');
+  reqBtn.textContent = '✋ Request Edit Access';
+  showToast({ icon: '✅', title: 'Edit access granted!', msg: 'The host has approved your request. You can now edit.', duration: 4000 });
+});
+
+// My request was denied
+socket.on('edit-access-denied', () => {
+  const reqBtn = document.getElementById('request-access-btn');
+  reqBtn.classList.remove('pending');
+  reqBtn.textContent = '✋ Request Edit Access';
+  showToast({ icon: '❌', title: 'Request denied', msg: 'The host declined your request to edit.', duration: 4000 });
+});
+
+// My edit access was revoked by host
+socket.on('edit-access-revoked', () => {
+  setEditability(false);
+  showToast({ icon: '🔒', title: 'Edit access removed', msg: 'The host has changed your access to view only.', duration: 5000 });
+});
+
+socket.on('error',         ({ message }) => showOverlay('Access Denied', message));
+socket.on('disconnect',    ()            => { setConnStatus('Disconnected', true); showOverlay('Disconnected', 'Your connection to the room was lost. Please go back and rejoin.'); });
+socket.on('connect_error', ()            => setConnStatus('Connection error', true));
 
 // ── Public API ────────────────────────────────────────────────────────────
-window.onLangChange       = (lang) => socket.emit('language-change', { roomName, fileId: activeFileId, language: lang });
+window.onLangChange       = (lang) => { if (myCanEdit) socket.emit('language-change', { roomName, fileId: activeFileId, language: lang }); };
 window.copyInviteLink     = () => {
   navigator.clipboard.writeText(location.origin + '/room/' + encodeURIComponent(roomName)).then(() => {
     const btn = document.getElementById('copy-btn');
     const lbl = document.getElementById('copy-btn-label');
-    btn.classList.add('copied');
-    lbl.textContent = 'Copied!';
+    btn.classList.add('copied'); lbl.textContent = 'Copied!';
     setTimeout(() => { btn.classList.remove('copied'); lbl.textContent = 'Invite Link'; }, 2000);
   });
 };
@@ -1032,6 +1182,12 @@ window.closeNewFileDialog = closeNewFileDialog;
 window.confirmNewFile     = confirmNewFile;
 window.openQrDialog       = openQrDialog;
 window.closeQrDialog      = closeQrDialog;
+window.closeDeleteDialog  = closeDeleteDialog;
+window.confirmDeleteFile  = confirmDeleteFile;
+window.toggleAccessPanel  = toggleAccessPanel;
+window.closeAccessPanel   = closeAccessPanel;
+window.setAccessMode      = setAccessMode;
+window.requestEditAccess  = requestEditAccess;
 </script>
 </body>
 </html>
