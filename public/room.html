@@ -398,10 +398,76 @@
     #new-file-btn:hover { color: var(--text); background: var(--bg3); }
 
     /* ── Editor row ──────────────────────────────────────────── */
-    #editor-row { flex: 1; display: flex; min-height: 0; overflow: hidden; }
-    #editor-wrap { flex: 1; overflow: hidden; position: relative; }
-    .cm-editor { height: 100% !important; font-size: var(--editor-font-size) !important; background: var(--bg) !important; }
+    #editor-row  { flex: 1; display: flex; min-height: 0; overflow: hidden; }
+    #editor-col  { flex: 1; display: flex; flex-direction: column; min-height: 0; overflow: hidden; }
+    #editor-wrap { flex: 1; overflow: hidden; position: relative; min-height: 0; }
+    .cm-editor   { height: 100% !important; font-size: var(--editor-font-size) !important; background: var(--bg) !important; }
     .cm-scroller { overflow: auto !important; font-family: 'Fira Code', 'Cascadia Code', 'Consolas', 'Menlo', monospace !important; }
+
+    /* ── Run button ──────────────────────────────────────────── */
+    #run-btn {
+      display: flex; align-items: center; gap: 0.35rem;
+      background: linear-gradient(135deg, #238636 0%, #2ea043 100%);
+      color: #fff; border: none; border-radius: 8px;
+      padding: 0.35rem 0.85rem; font-size: 0.8rem; font-weight: 700;
+      font-family: inherit; cursor: pointer; flex-shrink: 0;
+      transition: opacity 0.15s, box-shadow 0.15s;
+      white-space: nowrap; box-shadow: 0 1px 6px rgba(35,134,54,0.3);
+    }
+    #run-btn:hover:not(:disabled) { opacity: 0.9; box-shadow: 0 2px 12px rgba(35,134,54,0.45); }
+    #run-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+    #run-btn.running  { background: linear-gradient(135deg, #5a3e10 0%, #7d5318 100%); box-shadow: none; }
+
+    /* ── Output panel ────────────────────────────────────────── */
+    #output-panel {
+      flex-shrink: 0;
+      height: 0;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      background: var(--bg);
+      border-top: 1px solid transparent;
+      transition: height 0.25s cubic-bezier(0.4,0,0.2,1), border-color 0.25s;
+    }
+    #output-panel.open {
+      height: 220px;
+      border-top-color: var(--border);
+    }
+    .output-header {
+      display: flex; align-items: center; gap: 0.5rem;
+      padding: 0.35rem 0.75rem;
+      background: var(--bg2);
+      border-bottom: 1px solid var(--border);
+      flex-shrink: 0;
+    }
+    .output-title { font-size: 0.75rem; font-weight: 600; color: var(--text); }
+    .output-lang-badge {
+      font-size: 0.65rem; padding: 1px 6px; border-radius: 10px;
+      background: var(--accent-bg); color: var(--accent2);
+      border: 1px solid rgba(47,129,247,0.3); font-weight: 600;
+    }
+    #output-exit-badge { font-size: 0.7rem; font-weight: 700; }
+    #output-exit-badge.ok  { color: var(--green); }
+    #output-exit-badge.err { color: var(--red); }
+    .output-action-btn {
+      background: transparent; border: none; color: var(--text3);
+      cursor: pointer; font-size: 0.78rem; padding: 0.15rem 0.4rem;
+      border-radius: 4px; font-family: inherit; transition: background 0.1s, color 0.1s;
+    }
+    .output-action-btn:hover { background: var(--bg3); color: var(--text); }
+    #output-body {
+      flex: 1; overflow-y: auto; padding: 0.6rem 1rem;
+      font-family: 'Fira Code', 'Cascadia Code', 'Consolas', 'Menlo', monospace;
+      font-size: 0.8rem; line-height: 1.65;
+      white-space: pre-wrap; word-break: break-word;
+      scrollbar-width: thin; scrollbar-color: var(--border) transparent;
+    }
+    #output-body::-webkit-scrollbar { width: 4px; }
+    #output-body::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+    .out-running { color: var(--text3); font-style: italic; }
+    .out-stdout  { color: #e6edf3; }
+    .out-stderr  { color: #f97583; }
+    .out-syserr  { color: var(--red); font-weight: 600; }
 
     /* ── Remote cursor widget ────────────────────────────────── */
     .remote-cursor-widget {
@@ -710,6 +776,11 @@
       <option value="text">📄 Plain Text</option>
     </select>
 
+    <!-- Run code -->
+    <button id="run-btn" onclick="runCode()" title="Run code (Ctrl+Enter)">
+      ▶ Run
+    </button>
+
     <!-- Font size controls -->
     <div class="font-controls" title="Font size">
       <button class="font-btn" onclick="changeFontSize(-1)">A−</button>
@@ -750,7 +821,22 @@
 
   <!-- Editor + Chat row -->
   <div id="editor-row">
-    <div id="editor-wrap"></div>
+    <div id="editor-col">
+      <div id="editor-wrap"></div>
+
+      <!-- Output panel -->
+      <div id="output-panel">
+        <div class="output-header">
+          <span class="output-title">▶ Output</span>
+          <span id="output-lang-badge" class="output-lang-badge"></span>
+          <span class="spacer"></span>
+          <span id="output-exit-badge"></span>
+          <button class="output-action-btn" onclick="clearOutput()" title="Clear output">🗑</button>
+          <button class="output-action-btn" onclick="closeOutputPanel()" title="Close">✕</button>
+        </div>
+        <div id="output-body"></div>
+      </div>
+    </div>
 
     <!-- Chat panel -->
     <div id="chat-panel">
@@ -1128,6 +1214,7 @@ function switchToFile(fileId) {
   document.getElementById('lang-select').value = file.language;
   renderTabs();
   updateStatus();
+  updateRunBtn();
 }
 
 let pendingDeleteId = null;
@@ -1463,8 +1550,9 @@ function saveRecentRoom(name) {
 
 // ── Keyboard shortcuts ────────────────────────────────────────────────────
 document.addEventListener('keydown', (e) => {
-  if ((e.ctrlKey || e.metaKey) && e.key === 'n') { e.preventDefault(); openNewFileDialog(); }
-  if ((e.ctrlKey || e.metaKey) && e.key === 'k') { e.preventDefault(); toggleChat(); }
+  if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') { e.preventDefault(); runCode(); }
+  if ((e.ctrlKey || e.metaKey) && e.key === 'n')     { e.preventDefault(); openNewFileDialog(); }
+  if ((e.ctrlKey || e.metaKey) && e.key === 'k')     { e.preventDefault(); toggleChat(); }
   if (e.key === 'Escape') {
     closeAccessPanel();
     closeQrDialog();
@@ -1507,7 +1595,7 @@ socket.on('room-state', ({ files: sf, users, currentUser: me, defaultAccess: da 
   else initEditor('', 'text');
 
   setEditability(me.canEdit);
-  renderTabs(); renderUsers(users); updateStatus();
+  renderTabs(); renderUsers(users); updateStatus(); updateRunBtn();
 
   // Save this room to recent
   saveRecentRoom(roomName);
@@ -1533,6 +1621,7 @@ socket.on('language-change', ({ fileId, language }) => {
     applyLang(language);
     document.getElementById('lang-select').value = language;
     updateStatus();
+    updateRunBtn();
   }
   renderTabs();
 });
@@ -1658,6 +1747,118 @@ socket.on('error',         ({ message }) => showOverlay('Access Denied', message
 socket.on('disconnect',    ()            => { setConnStatus('Disconnected', true); showOverlay('Disconnected', 'Your connection to the room was lost. Please go back and rejoin.'); });
 socket.on('connect_error', ()            => setConnStatus('Connection error', true));
 
+// ── Code execution ────────────────────────────────────────────────────────
+const PISTON_RUNTIMES = {
+  python:     { language: 'python',     version: '*' },
+  javascript: { language: 'javascript', version: '*' },
+  java:       { language: 'java',       version: '*' },
+  cpp:        { language: 'c++',        version: '*' },
+  csharp:     { language: 'csharp',     version: '*' },
+};
+
+async function runCode() {
+  const file = files.find(f => f.id === activeFileId);
+  if (!file) return;
+
+  const runtime = PISTON_RUNTIMES[file.language];
+  if (!runtime) {
+    openOutputPanel();
+    setOutputContent('<span class="out-syserr">Cannot execute plain text files.</span>');
+    return;
+  }
+
+  const code = editor ? editor.state.doc.toString() : file.code;
+  const runBtn = document.getElementById('run-btn');
+
+  openOutputPanel();
+  document.getElementById('output-lang-badge').textContent = LANG_LABELS[file.language] || file.language;
+  document.getElementById('output-exit-badge').textContent = '';
+  document.getElementById('output-exit-badge').className   = '';
+  setOutputContent('<span class="out-running">⏳ Running…</span>');
+
+  runBtn.disabled = true;
+  runBtn.textContent = '⏳ Running…';
+  runBtn.classList.add('running');
+
+  try {
+    const res  = await fetch('/api/run', {
+      method:  'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        language: runtime.language,
+        version:  runtime.version,
+        code,
+        filename: file.name,
+      }),
+    });
+    const data = await res.json();
+
+    if (!res.ok) {
+      setOutputContent(`<span class="out-syserr">Error: ${escHtml(data.error || 'Unknown error')}</span>`);
+      return;
+    }
+
+    const exitCode  = data.run?.code ?? null;
+    const stdout    = data.run?.stdout || '';
+    const stderr    = data.run?.stderr || '';
+    const compileErr = data.compile?.stderr || '';
+
+    let html = '';
+    if (compileErr) html += `<span class="out-stderr">${escHtml(compileErr)}</span>`;
+    if (stdout)     html += `<span class="out-stdout">${escHtml(stdout)}</span>`;
+    if (stderr)     html += `<span class="out-stderr">${escHtml(stderr)}</span>`;
+    if (!html)      html  = `<span class="out-running">(no output)</span>`;
+
+    setOutputContent(html);
+
+    const badge = document.getElementById('output-exit-badge');
+    if (exitCode === 0) {
+      badge.textContent = '✓ exit 0';
+      badge.className   = 'ok';
+    } else if (exitCode !== null) {
+      badge.textContent = `✗ exit ${exitCode}`;
+      badge.className   = 'err';
+    }
+
+  } catch (err) {
+    setOutputContent(`<span class="out-syserr">Network error: ${escHtml(err.message)}</span>`);
+  } finally {
+    runBtn.disabled  = false;
+    runBtn.textContent = '▶ Run';
+    runBtn.classList.remove('running');
+  }
+}
+
+function escHtml(str) {
+  return String(str)
+    .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+function openOutputPanel() {
+  document.getElementById('output-panel').classList.add('open');
+}
+function closeOutputPanel() {
+  document.getElementById('output-panel').classList.remove('open');
+}
+function clearOutput() {
+  document.getElementById('output-body').innerHTML = '';
+  document.getElementById('output-exit-badge').textContent = '';
+  document.getElementById('output-exit-badge').className   = '';
+}
+function setOutputContent(html) {
+  const body = document.getElementById('output-body');
+  body.innerHTML = html;
+  body.scrollTop = body.scrollHeight;
+}
+
+// Update run-btn visibility based on active file language
+function updateRunBtn() {
+  const file = files.find(f => f.id === activeFileId);
+  const btn  = document.getElementById('run-btn');
+  const canRun = file && !!PISTON_RUNTIMES[file.language];
+  btn.style.display = canRun ? '' : 'none';
+}
+
 // ── Public API ────────────────────────────────────────────────────────────
 window.onLangChange       = (lang) => { if (myCanEdit) socket.emit('language-change', { roomName, fileId: activeFileId, language: lang }); };
 window.copyInviteLink     = () => {
@@ -1682,6 +1883,9 @@ window.requestEditAccess  = requestEditAccess;
 window.toggleChat         = toggleChat;
 window.sendChat           = sendChat;
 window.changeFontSize     = changeFontSize;
+window.runCode            = runCode;
+window.closeOutputPanel   = closeOutputPanel;
+window.clearOutput        = clearOutput;
 </script>
 </body>
 </html>

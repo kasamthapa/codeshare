@@ -118,6 +118,37 @@ app.get('/health', (_req, res) =>
 
 // ── REST API ───────────────────────────────────────────────────────────────
 
+// Code execution proxy — forwards to Piston (emkc.org) so the browser
+// never has to worry about CORS, and we can enforce size limits server-side.
+app.post('/api/run', async (req, res) => {
+  const { language, version, code, filename } = req.body;
+  if (!language || !code)
+    return res.status(400).json({ error: 'language and code are required' });
+  if (typeof code !== 'string' || code.length > 65_536)
+    return res.status(400).json({ error: 'Code exceeds 64 KB limit' });
+
+  try {
+    const r = await fetch('https://emkc.org/api/v2/piston/execute', {
+      method:  'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        language,
+        version:  version || '*',
+        files: [{ name: filename || 'main', content: code }],
+        stdin: '',
+        args:  [],
+        run_timeout:  10000,
+        compile_timeout: 15000,
+      }),
+    });
+    const data = await r.json();
+    res.json(data);
+  } catch (err) {
+    console.error('[run] Piston error:', err.message);
+    res.status(502).json({ error: 'Code runner unavailable — try again shortly.' });
+  }
+});
+
 app.post('/api/create-room', async (req, res) => {
   const { roomName, password } = req.body;
   if (!roomName || !password)
