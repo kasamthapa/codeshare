@@ -417,6 +417,7 @@
         text-align: center;
         font-size: 0.78rem;
         color: var(--text3);
+        opacity: 0.7;
       }
       .footer a {
         color: var(--text2);
@@ -424,10 +425,23 @@
       }
       .footer a:hover {
         color: var(--text);
+        opacity: 1;
       }
       .heart {
         color: #f85149;
       }
+.footer-link {
+  display: inline-flex;
+  align-items: center;   /* vertical alignment */
+  gap: 8px;              /* space between icon and text */
+  text-decoration: none;
+}
+
+.footer-link i {
+  font-size: 24px;       /* keep size balanced with text */
+}
+
+
     </style>
   </head>
   <body>
@@ -576,15 +590,14 @@
       </div>
 
       <!-- Footer -->
-      <div class="footer">
-        <a
-          href="https://github.com/kasamthapa?tab=overview&from=2026-04-01&to=2026-04-22"
-          target="_blank"
-          ><i class="fa fa-github" style="font-size: 36px"></i>Kasam Thapa
-          Magar</a
-        >
-      </div>
-    </div>
+ <div class="footer">
+  <a href="https://github.com/kasamthapa/codeshare" target="_blank" class="footer-link" >
+    <i class="fa fa-github" style="font-size: 25px;"></i>
+    <span style="font-size: 15px;">View source</span>
+  </a>
+</div>
+
+
     <!-- .page -->
 
     <script>
