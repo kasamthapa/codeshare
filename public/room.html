@@ -1798,15 +1798,24 @@ async function runCode() {
       return;
     }
 
-    const exitCode  = data.run?.code ?? null;
-    const stdout    = data.run?.stdout || '';
-    const stderr    = data.run?.stderr || '';
-    const compileErr = data.compile?.stderr || '';
+    if (!data.run) {
+      // Piston returned 200 but without a run field — show raw response for debugging
+      setOutputContent(`<span class="out-syserr">Unexpected response from code runner:\n${escHtml(JSON.stringify(data, null, 2))}</span>`);
+      return;
+    }
+
+    const exitCode   = data.run.code  ?? null;
+    const stdout     = data.run.stdout ?? '';
+    const stderr     = data.run.stderr ?? '';
+    const output     = data.run.output ?? ''; // stdout+stderr combined (fallback)
+    const compileOut = data.compile?.output ?? data.compile?.stderr ?? '';
 
     let html = '';
-    if (compileErr) html += `<span class="out-stderr">${escHtml(compileErr)}</span>`;
+    if (compileOut) html += `<span class="out-stderr">${escHtml(compileOut)}</span>`;
     if (stdout)     html += `<span class="out-stdout">${escHtml(stdout)}</span>`;
     if (stderr)     html += `<span class="out-stderr">${escHtml(stderr)}</span>`;
+    // Last resort: use combined output field if individual streams were both empty
+    if (!html && output) html = `<span class="out-stdout">${escHtml(output)}</span>`;
     if (!html)      html  = `<span class="out-running">(no output)</span>`;
 
     setOutputContent(html);

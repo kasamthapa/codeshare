@@ -118,34 +118,104 @@ app.get('/health', (_req, res) =>
 
 // ── REST API ───────────────────────────────────────────────────────────────
 
-// Code execution proxy — forwards to Piston (emkc.org) so the browser
-// never has to worry about CORS, and we can enforce size limits server-side.
+// ── Wandbox compiler cache ────────────────────────────────────────────────
+// Wandbox (wandbox.org) is the free code execution backend — no API key needed.
+// We fetch its compiler list once and cache it for 6 hours.
+let _wandboxCompilers = null;
+let _wandboxCacheTime = 0;
+const WANDBOX = 'https://wandbox.org';
+
+// Language → filter function for the Wandbox compiler list
+const WANDBOX_FILTER = {
+  python:     n => n.startsWith('cpython-3')  && !n.includes('head'),
+  javascript: n => n.startsWith('nodejs-')    && !n.includes('head'),
+  java:       n => n.startsWith('openjdk-')   && !n.includes('head'),
+  cpp:        n => n.startsWith('gcc-')       && !n.includes('head') && !n.endsWith('-c'),
+  csharp:     n => n.startsWith('mono-')      && !n.includes('head'),
+};
+
+// Sort compiler names by their embedded version numbers (numeric, not lexicographic)
+function semverSort(a, b) {
+  const nums = s => (s.match(/\d+/g) || []).map(Number);
+  const an = nums(a), bn = nums(b);
+  for (let i = 0; i < Math.max(an.length, bn.length); i++) {
+    const diff = (an[i] || 0) - (bn[i] || 0);
+    if (diff !== 0) return diff;
+  }
+  return 0;
+}
+
+async function pickWandboxCompiler(lang) {
+  const now = Date.now();
+  if (!_wandboxCompilers || now - _wandboxCacheTime > 6 * 3_600_000) {
+    const r = await fetch(`${WANDBOX}/api/list.json`, { signal: AbortSignal.timeout(8000) });
+    if (!r.ok) throw new Error(`Wandbox list error: ${r.status}`);
+    _wandboxCompilers = await r.json();
+    _wandboxCacheTime = now;
+    console.log(`[run] Cached ${_wandboxCompilers.length} Wandbox compilers`);
+  }
+  const filter = WANDBOX_FILTER[lang];
+  if (!filter) return null;
+  const names = _wandboxCompilers.map(c => c.name).filter(filter).sort(semverSort);
+  return names[names.length - 1] ?? null; // latest release version
+}
+
+// Code execution proxy — normalises Wandbox response to a Piston-like shape
+// so the browser client needs no changes.
 app.post('/api/run', async (req, res) => {
-  const { language, version, code, filename } = req.body;
+  const { language, code } = req.body;
   if (!language || !code)
     return res.status(400).json({ error: 'language and code are required' });
   if (typeof code !== 'string' || code.length > 65_536)
     return res.status(400).json({ error: 'Code exceeds 64 KB limit' });
+  if (!WANDBOX_PREFIX[language])
+    return res.status(400).json({ error: `Language "${language}" is not supported` });
 
   try {
-    const r = await fetch('https://emkc.org/api/v2/piston/execute', {
+    const compiler = await pickWandboxCompiler(language);
+    if (!compiler)
+      return res.status(400).json({ error: `No compiler found for "${language}"` });
+
+    const r = await fetch(`${WANDBOX}/api/compile.json`, {
       method:  'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        language,
-        version:  version || '*',
-        files: [{ name: filename || 'main', content: code }],
-        stdin: '',
-        args:  [],
-        run_timeout:  10000,
-        compile_timeout: 15000,
+        compiler,
+        code,
+        options:               language === 'cpp' ? 'warning' : '',
+        stdin:                 '',
+        'compiler-option-raw': '',
+        'runtime-option-raw':  '',
+        save: false,
       }),
+      signal: AbortSignal.timeout(20000),
     });
-    const data = await r.json();
-    res.json(data);
+
+    if (!r.ok) {
+      const txt = await r.text();
+      return res.status(r.status).json({ error: `Wandbox error ${r.status}: ${txt.slice(0, 200)}` });
+    }
+
+    const w = await r.json();
+    const exitCode   = parseInt(w.status, 10);
+    const compileOut = [w.compiler_output, w.compiler_error].filter(Boolean).join('\n').trim();
+
+    console.log(`[run] compiler=${compiler} exit=${w.status} stdout=${JSON.stringify((w.program_output||'').slice(0,80))}`);
+
+    // Return in the same shape the client already knows how to display
+    res.json({
+      run: {
+        stdout: w.program_output || '',
+        stderr: w.program_error  || '',
+        output: (w.program_output || '') + (w.program_error || ''),
+        code:   isNaN(exitCode) ? 0 : exitCode,
+      },
+      compile: compileOut ? { stderr: compileOut } : undefined,
+    });
+
   } catch (err) {
-    console.error('[run] Piston error:', err.message);
-    res.status(502).json({ error: 'Code runner unavailable — try again shortly.' });
+    console.error('[run] Wandbox error:', err.message);
+    res.status(502).json({ error: `Code runner error: ${err.message}` });
   }
 });
 
