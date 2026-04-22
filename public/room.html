@@ -40,6 +40,7 @@
       --topbar-h:  52px;
       --tabbar-h:  38px;
       --status-h:  24px;
+      --editor-font-size: 14px;
     }
 
     html, body { height: 100%; overflow: hidden; background: var(--bg); color: var(--text);
@@ -55,8 +56,8 @@
       border-bottom: 1px solid var(--border);
       display: flex;
       align-items: center;
-      gap: 0.6rem;
-      padding: 0 1rem;
+      gap: 0.5rem;
+      padding: 0 0.85rem;
       overflow: visible;
       position: relative;
       z-index: 50;
@@ -82,7 +83,8 @@
       background: var(--bg3); border: 1px solid var(--border);
       border-radius: 20px; padding: 0.25rem 0.75rem; flex-shrink: 0;
     }
-    #room-pill-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--green); box-shadow: 0 0 6px var(--green); flex-shrink: 0; }
+    #room-pill-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--green); box-shadow: 0 0 6px var(--green); flex-shrink: 0; animation: dotPulse 2.5s ease-in-out infinite; }
+    @keyframes dotPulse { 0%,100%{opacity:1} 50%{opacity:.4} }
     #room-name-text { font-size: 0.82rem; font-weight: 600; color: var(--text); }
     .host-badge {
       font-size: 0.67rem; background: rgba(47,129,247,0.15); color: var(--accent2);
@@ -96,10 +98,13 @@
       display: flex; align-items: center; justify-content: center;
       font-size: 0.72rem; font-weight: 700; color: #0d1117;
       flex-shrink: 0; cursor: default; user-select: none; position: relative;
-      border: 2px solid var(--bg2); margin-left: -6px; transition: margin 0.15s;
+      border: 2px solid var(--bg2); margin-left: -6px;
+      transition: margin 0.2s ease, transform 0.15s ease;
+      animation: avatarIn 0.3s cubic-bezier(0.175,0.885,0.32,1.275);
     }
+    @keyframes avatarIn { from { transform: scale(0); opacity: 0; } to { transform: scale(1); opacity: 1; } }
     #users-row .avatar:first-child { margin-left: 0; }
-    #users-row:hover .avatar { margin-left: 0; }
+    #users-row:hover .avatar { margin-left: 1px; }
     .avatar::after {
       content: attr(data-tip); position: absolute; top: calc(100% + 8px); left: 50%;
       transform: translateX(-50%); background: var(--bg3); border: 1px solid var(--border);
@@ -110,19 +115,44 @@
     .avatar:hover::after { opacity: 1; }
     .avatar.me { border-color: rgba(255,255,255,0.5); }
 
-    #user-count { font-size: 0.75rem; color: var(--text3); white-space: nowrap; flex-shrink: 0; margin-left: 0.5rem; }
-    .spacer { flex: 1; min-width: 0.25rem; }
+    #user-count { font-size: 0.75rem; color: var(--text3); white-space: nowrap; flex-shrink: 0; margin-left: 0.4rem; }
+    .spacer { flex: 1; min-width: 0.15rem; }
 
-    /* Shared button base for topbar buttons */
+    /* Shared topbar button base */
     .topbar-btn {
       display: flex; align-items: center; gap: 0.35rem;
       background: var(--bg3); color: var(--text2);
       border: 1px solid var(--border); border-radius: 8px;
-      padding: 0.35rem 0.75rem; font-size: 0.8rem; font-weight: 600;
+      padding: 0.35rem 0.65rem; font-size: 0.8rem; font-weight: 600;
       font-family: inherit; cursor: pointer; flex-shrink: 0; white-space: nowrap;
       transition: border-color 0.15s, color 0.15s, background 0.15s;
     }
     .topbar-btn:hover { border-color: var(--border2); color: var(--text); background: var(--bg4); }
+    .topbar-btn.active { background: var(--accent-bg); border-color: rgba(47,129,247,0.4); color: var(--accent2); }
+
+    /* Chat badge */
+    .chat-badge {
+      background: var(--red); color: #fff; font-size: 0.6rem; font-weight: 700;
+      border-radius: 10px; padding: 0 5px; min-width: 16px; text-align: center; line-height: 16px;
+      animation: badgeIn 0.2s cubic-bezier(0.175,0.885,0.32,1.275);
+    }
+    @keyframes badgeIn { from{transform:scale(0)} to{transform:scale(1)} }
+
+    /* Font size controls */
+    .font-controls { display: flex; align-items: center; gap: 0; flex-shrink: 0; }
+    .font-btn {
+      background: var(--bg3); color: var(--text2); border: 1px solid var(--border);
+      padding: 0.3rem 0.5rem; font-size: 0.78rem; font-family: inherit; font-weight: 700;
+      cursor: pointer; transition: background 0.12s, color 0.12s; line-height: 1;
+    }
+    .font-btn:first-child { border-radius: 8px 0 0 8px; border-right: none; }
+    .font-btn:last-child  { border-radius: 0 8px 8px 0; }
+    .font-btn:hover { background: var(--bg4); color: var(--text); }
+    #font-size-val {
+      background: var(--bg3); border: 1px solid var(--border); border-left: none; border-right: none;
+      padding: 0.3rem 0.35rem; font-size: 0.72rem; color: var(--text3); min-width: 26px;
+      text-align: center; line-height: 1.6;
+    }
 
     /* Lang selector */
     #lang-select {
@@ -143,13 +173,13 @@
     #copy-btn:hover { background: var(--accent2); box-shadow: 0 2px 10px rgba(47,129,247,0.3); }
     #copy-btn.copied { background: #238636; box-shadow: 0 2px 10px rgba(35,134,54,0.3); }
 
-    /* Request edit access button (guests in view-only mode) */
+    /* Request edit access button */
     #request-access-btn {
       display: none;
       align-items: center; gap: 0.35rem;
       background: var(--yellow-bg); color: var(--yellow);
       border: 1px solid rgba(210,153,34,0.35); border-radius: 8px;
-      padding: 0.35rem 0.75rem; font-size: 0.8rem; font-weight: 600;
+      padding: 0.35rem 0.65rem; font-size: 0.8rem; font-weight: 600;
       font-family: inherit; cursor: pointer; flex-shrink: 0; white-space: nowrap;
       transition: background 0.15s, border-color 0.15s;
       animation: pulseYellow 2s ease-in-out infinite;
@@ -163,7 +193,7 @@
 
     /* ── Access panel (host popover) ─────────────────────────── */
     #access-wrap { position: relative; flex-shrink: 0; }
-    #access-btn { display: none; } /* hidden until host joins */
+    #access-btn { display: none; }
 
     #access-panel {
       display: none;
@@ -278,7 +308,7 @@
     .toast-deny    { background: var(--red-bg);   color: var(--red);   border-color: rgba(248,81,73,0.4); }
     .toast-deny:hover { background: rgba(248,81,73,0.2); }
 
-    /* View-only banner below tabbar */
+    /* View-only banner */
     #readonly-bar {
       display: none;
       flex-shrink: 0;
@@ -334,7 +364,8 @@
       display: flex; align-items: center; gap: 0.3rem; padding: 0 0.85rem;
       min-width: 90px; max-width: 160px; border-right: 1px solid var(--border);
       cursor: pointer; color: var(--text2); font-size: 0.78rem; white-space: nowrap;
-      position: relative; user-select: none; flex-shrink: 0; transition: background 0.1s, color 0.1s;
+      position: relative; user-select: none; flex-shrink: 0;
+      transition: background 0.12s, color 0.12s;
     }
     .tab:hover { background: var(--bg3); color: var(--text); }
     .tab.active { background: var(--bg); color: var(--text); }
@@ -342,6 +373,8 @@
       content: ''; position: absolute; top: 0; left: 0; right: 0;
       height: 2px; background: var(--accent); border-radius: 0 0 2px 2px;
     }
+    .tab-new { animation: tabSlideIn 0.2s ease; }
+    @keyframes tabSlideIn { from { opacity:0; transform: translateX(-8px); } to { opacity:1; transform: translateX(0); } }
 
     .tab-icon { font-size: 0.82rem; flex-shrink: 0; }
     .tab-name { flex: 1; overflow: hidden; text-overflow: ellipsis; outline: none; }
@@ -364,21 +397,163 @@
     }
     #new-file-btn:hover { color: var(--text); background: var(--bg3); }
 
-    /* ── Editor ──────────────────────────────────────────────── */
-    #editor-wrap { flex: 1; overflow: hidden; display: flex; flex-direction: column; min-height: 0; position: relative; }
-    .cm-editor { height: 100% !important; font-size: 14px !important; background: var(--bg) !important; }
+    /* ── Editor row ──────────────────────────────────────────── */
+    #editor-row { flex: 1; display: flex; min-height: 0; overflow: hidden; }
+    #editor-wrap { flex: 1; overflow: hidden; position: relative; }
+    .cm-editor { height: 100% !important; font-size: var(--editor-font-size) !important; background: var(--bg) !important; }
     .cm-scroller { overflow: auto !important; font-family: 'Fira Code', 'Cascadia Code', 'Consolas', 'Menlo', monospace !important; }
+
+    /* ── Remote cursor widget ────────────────────────────────── */
+    .remote-cursor-widget {
+      display: inline-block;
+      position: relative;
+      width: 0;
+      height: 0;
+    }
+    .remote-cursor-widget::before {
+      content: '';
+      display: block;
+      position: absolute;
+      top: -2px;
+      left: -1px;
+      width: 2px;
+      height: 1.2em;
+      background: var(--cursor-color, #61afef);
+      border-radius: 1px;
+      pointer-events: none;
+    }
+    .remote-cursor-widget::after {
+      content: attr(data-name);
+      display: block;
+      position: absolute;
+      top: -1.6em;
+      left: -1px;
+      background: var(--cursor-color, #61afef);
+      color: #0d1117;
+      font-size: 0.6em;
+      font-family: 'Inter', sans-serif;
+      font-weight: 700;
+      padding: 1px 5px;
+      border-radius: 3px 3px 3px 0;
+      white-space: nowrap;
+      pointer-events: none;
+      line-height: 1.6;
+    }
+
+    /* ── Chat panel ──────────────────────────────────────────── */
+    #chat-panel {
+      width: 0;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      background: var(--bg2);
+      border-left: 0px solid var(--border);
+      transition: width 0.25s cubic-bezier(0.4,0,0.2,1), border-color 0.25s;
+      flex-shrink: 0;
+    }
+    #chat-panel.open {
+      width: 280px;
+      border-left-width: 1px;
+    }
+
+    .chat-header {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 0.7rem 0.9rem;
+      border-bottom: 1px solid var(--border);
+      flex-shrink: 0;
+    }
+    .chat-header-title { font-size: 0.82rem; font-weight: 600; color: var(--text); display: flex; align-items: center; gap: 0.4rem; }
+    .chat-header-close {
+      width: 24px; height: 24px; display: flex; align-items: center; justify-content: center;
+      border-radius: 6px; border: none; background: transparent; color: var(--text3);
+      cursor: pointer; font-size: 0.9rem; transition: background 0.1s, color 0.1s;
+    }
+    .chat-header-close:hover { background: var(--bg3); color: var(--text); }
+
+    #chat-messages {
+      flex: 1; overflow-y: auto; padding: 0.6rem;
+      display: flex; flex-direction: column; gap: 0.5rem;
+      scrollbar-width: thin; scrollbar-color: var(--border) transparent;
+    }
+    #chat-messages::-webkit-scrollbar { width: 4px; }
+    #chat-messages::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+
+    .chat-msg {
+      display: flex; flex-direction: column; gap: 0.15rem;
+      animation: msgIn 0.18s ease;
+    }
+    @keyframes msgIn { from { opacity:0; transform: translateY(4px); } to { opacity:1; transform: translateY(0); } }
+    .chat-msg-header { display: flex; align-items: baseline; gap: 0.4rem; }
+    .chat-msg-user { font-size: 0.72rem; font-weight: 700; }
+    .chat-msg-time { font-size: 0.65rem; color: var(--text3); }
+    .chat-msg-text {
+      font-size: 0.8rem; color: var(--text2); line-height: 1.5;
+      background: var(--bg3); border: 1px solid var(--border);
+      border-radius: 0 8px 8px 8px; padding: 0.4rem 0.65rem;
+      word-break: break-word;
+    }
+    .chat-msg.me .chat-msg-text {
+      background: var(--accent-bg); border-color: rgba(47,129,247,0.2);
+      color: var(--text);
+    }
+    .chat-msg.me { align-items: flex-end; }
+    .chat-msg.me .chat-msg-header { flex-direction: row-reverse; }
+    .chat-msg.me .chat-msg-text { border-radius: 8px 0 8px 8px; }
+
+    .chat-empty {
+      flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center;
+      gap: 0.5rem; color: var(--text3); font-size: 0.8rem; text-align: center; padding: 1rem;
+    }
+    .chat-empty-icon { font-size: 2rem; opacity: 0.4; }
+
+    #typing-indicator {
+      flex-shrink: 0;
+      min-height: 20px;
+      padding: 0 0.9rem 0.3rem;
+      font-size: 0.7rem;
+      color: var(--text3);
+      font-style: italic;
+      transition: opacity 0.2s;
+    }
+
+    .chat-input-row {
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      gap: 0;
+      padding: 0.6rem;
+      border-top: 1px solid var(--border);
+    }
+    #chat-input {
+      flex: 1; background: var(--bg3); border: 1px solid var(--border);
+      border-radius: 8px 0 0 8px; color: var(--text); font-size: 0.8rem;
+      font-family: inherit; padding: 0.5rem 0.75rem;
+      transition: border-color 0.15s; outline: none; min-width: 0;
+    }
+    #chat-input:focus { border-color: var(--accent); }
+    #chat-input::placeholder { color: var(--text3); }
+    #chat-send-btn {
+      background: var(--accent); border: none; border-radius: 0 8px 8px 0;
+      color: #fff; padding: 0.5rem 0.65rem; cursor: pointer;
+      transition: background 0.12s; display: flex; align-items: center;
+    }
+    #chat-send-btn:hover { background: var(--accent2); }
 
     /* ── Status bar ──────────────────────────────────────────── */
     #statusbar {
       flex-shrink: 0; height: var(--status-h); background: var(--accent);
-      display: flex; align-items: center; padding: 0 1rem; gap: 1.25rem;
+      display: flex; align-items: center; padding: 0 1rem; gap: 1rem;
       font-size: 0.7rem; color: rgba(255,255,255,0.9); font-weight: 500;
+      overflow: hidden;
     }
     #status-conn { margin-left: auto; }
     #status-conn.disconnected { color: #ffa0a0; }
-    .status-item { display: flex; align-items: center; gap: 0.3rem; opacity: 0.85; }
-    .status-credit { margin-left: auto; font-size: 0.67rem; opacity: 0.65; white-space: nowrap; }
+    .status-item { display: flex; align-items: center; gap: 0.3rem; opacity: 0.85; white-space: nowrap; }
+    .status-sep { opacity: 0.3; }
+    #status-saved { transition: color 0.4s; }
+    #status-saved.saving { opacity: 0.55; }
+    #status-saved.saved  { color: #9eff9e; opacity: 1; }
+    .status-credit { font-size: 0.67rem; opacity: 0.6; white-space: nowrap; }
 
     /* ── Overlay ─────────────────────────────────────────────── */
     #overlay {
@@ -455,17 +630,19 @@
     #splash {
       position: fixed; inset: 0; background: var(--bg);
       display: flex; flex-direction: column; align-items: center; justify-content: center;
-      gap: 1rem; z-index: 100;
+      gap: 1rem; z-index: 500;
+      transition: opacity 0.3s ease;
     }
+    #splash.hiding { opacity: 0; pointer-events: none; }
     #splash .splash-logo {
       width: 52px; height: 52px;
       background: linear-gradient(135deg, var(--accent) 0%, #9e6bff 100%);
       border-radius: 14px; display: flex; align-items: center; justify-content: center;
       font-size: 1.5rem; box-shadow: 0 8px 24px rgba(47,129,247,0.3);
-      animation: pulse 1.5s ease-in-out infinite;
+      animation: splashPulse 1.5s ease-in-out infinite;
     }
     #splash p { font-size: 0.875rem; color: var(--text2); }
-    @keyframes pulse {
+    @keyframes splashPulse {
       0%, 100% { box-shadow: 0 8px 24px rgba(47,129,247,0.3); }
       50%       { box-shadow: 0 8px 36px rgba(47,129,247,0.55); }
     }
@@ -495,12 +672,12 @@
 
     <div class="spacer"></div>
 
-    <!-- Request edit access (shown to view-only guests) -->
+    <!-- Request edit access (guests in view-only mode) -->
     <button id="request-access-btn" onclick="requestEditAccess()">
       ✋ Request Edit Access
     </button>
 
-    <!-- Access control panel (shown to host only) -->
+    <!-- Access control panel (host only) -->
     <div id="access-wrap">
       <button id="access-btn" class="topbar-btn" onclick="toggleAccessPanel()">
         🔐 <span id="access-btn-label">Access</span>
@@ -533,18 +710,31 @@
       <option value="text">📄 Plain Text</option>
     </select>
 
+    <!-- Font size controls -->
+    <div class="font-controls" title="Font size">
+      <button class="font-btn" onclick="changeFontSize(-1)">A−</button>
+      <span id="font-size-val">14</span>
+      <button class="font-btn" onclick="changeFontSize(1)">A+</button>
+    </div>
+
+    <!-- Chat toggle -->
+    <button class="topbar-btn" id="chat-btn" onclick="toggleChat()" title="Toggle chat panel">
+      💬
+      <span id="chat-badge" class="chat-badge" style="display:none">0</span>
+    </button>
+
     <button class="topbar-btn" id="qr-btn" onclick="openQrDialog()" title="Show QR code — students scan to join">
       <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
         <rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/>
         <rect x="5" y="5" width="3" height="3" fill="currentColor" stroke="none"/><rect x="16" y="5" width="3" height="3" fill="currentColor" stroke="none"/><rect x="5" y="16" width="3" height="3" fill="currentColor" stroke="none"/>
         <path d="M14 14h3v3h-3z" fill="currentColor" stroke="none"/><path d="M17 17h4"/><path d="M21 14v3"/><path d="M17 21h4v-1"/>
       </svg>
-      <span>QR Code</span>
+      <span>QR</span>
     </button>
 
     <button id="copy-btn" onclick="copyInviteLink()">
       <span>🔗</span>
-      <span id="copy-btn-label">Invite Link</span>
+      <span id="copy-btn-label">Invite</span>
     </button>
   </div>
 
@@ -555,16 +745,46 @@
 
   <!-- View-only banner -->
   <div id="readonly-bar">
-    👁 You are in <strong style="margin:0 3px">view-only</strong> mode — click "Request Edit Access" to ask the host for permission to edit.
+    👁 You are in <strong style="margin:0 3px">view-only</strong> mode — click "Request Edit Access" to ask the host for permission.
   </div>
 
-  <!-- Editor -->
-  <div id="editor-wrap"></div>
+  <!-- Editor + Chat row -->
+  <div id="editor-row">
+    <div id="editor-wrap"></div>
+
+    <!-- Chat panel -->
+    <div id="chat-panel">
+      <div class="chat-header">
+        <span class="chat-header-title">💬 Room Chat</span>
+        <button class="chat-header-close" onclick="toggleChat()">✕</button>
+      </div>
+      <div id="chat-messages">
+        <div class="chat-empty">
+          <div class="chat-empty-icon">💬</div>
+          <span>No messages yet.<br/>Say hi to the room!</span>
+        </div>
+      </div>
+      <div id="typing-indicator"></div>
+      <div class="chat-input-row">
+        <input id="chat-input" type="text" placeholder="Send a message…" maxlength="500" autocomplete="off" />
+        <button id="chat-send-btn" onclick="sendChat()" title="Send (Enter)">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/>
+          </svg>
+        </button>
+      </div>
+    </div>
+  </div>
 
   <!-- Status bar -->
   <div id="statusbar">
     <span class="status-item">📄 <span id="status-file">—</span></span>
+    <span class="status-sep">|</span>
     <span class="status-item"><span id="status-lang">—</span></span>
+    <span class="status-sep">|</span>
+    <span class="status-item"><span id="status-lncol">Ln 1, Col 1</span></span>
+    <span class="status-sep">|</span>
+    <span class="status-item" id="status-saved">✓ Saved</span>
     <span class="status-credit">Made with ♥ by Kasam Thapa Magar</span>
     <span id="status-conn" class="status-item">● Connecting…</span>
   </div>
@@ -631,26 +851,38 @@
 <script>
 'use strict';
 
-const { EditorView, EditorState, Compartment, basicSetup, oneDark, python, javascript, java, cpp, csharp } = CM;
+const {
+  EditorView, EditorState, Compartment,
+  StateField, StateEffect, Decoration, WidgetType,
+  basicSetup, oneDark,
+  python, javascript, java, cpp, csharp,
+} = CM;
 
+// ── Room info ─────────────────────────────────────────────────────────────
 const roomName = decodeURIComponent(window.location.pathname.split('/room/')[1] || '');
 const password = sessionStorage.getItem('roomPassword');
 const username = sessionStorage.getItem('username') || '';
 
 if (!password) window.location.href = '/?join=' + encodeURIComponent(roomName);
 
+// ── State ─────────────────────────────────────────────────────────────────
 let currentUser    = null;
 let files          = [];
 let activeFileId   = null;
 let editor         = null;
 let isRemoteChange = false;
-let myCanEdit      = true;   // tracks whether I have edit access
-let roomUsers      = [];     // latest user list (for access panel)
-let defaultAccess  = 'edit'; // current room default
+let myCanEdit      = true;
+let roomUsers      = [];
+let defaultAccess  = 'edit';
+let fontSize       = parseInt(localStorage.getItem('cs_fontSize') || '14', 10);
+let chatOpen       = false;
+let chatUnread     = 0;
 
+// ── CodeMirror compartments ────────────────────────────────────────────────
 const langComp = new Compartment();
-const editComp = new Compartment(); // controls editor read-only state
+const editComp = new Compartment();
 
+// ── Language config ────────────────────────────────────────────────────────
 const LANG_LABELS = { python:'Python', javascript:'JavaScript', java:'Java', cpp:'C++', csharp:'C#', text:'Plain Text' };
 const LANG_ICONS  = { python:'🐍', javascript:'🟨', java:'☕', cpp:'⚙️', csharp:'💜', text:'📄' };
 
@@ -665,6 +897,97 @@ function getLangExt(lang) {
   }
 }
 
+// ── Apply saved font size on load ──────────────────────────────────────────
+document.documentElement.style.setProperty('--editor-font-size', fontSize + 'px');
+document.getElementById('font-size-val').textContent = fontSize;
+
+// ── Remote cursor infrastructure ───────────────────────────────────────────
+const setCursorEffect = StateEffect.define();
+const cursorField = StateField.define({
+  create: () => Decoration.none,
+  update(decs, tr) {
+    decs = decs.map(tr.changes);
+    for (const ef of tr.effects) {
+      if (ef.is(setCursorEffect)) decs = ef.value;
+    }
+    return decs;
+  },
+  provide: f => EditorView.decorations.from(f),
+});
+
+class RemoteCursorWidget extends WidgetType {
+  constructor(color, name) { super(); this.color = color; this.name = name; }
+  eq(o) { return o.color === this.color && o.name === this.name; }
+  toDOM() {
+    const el = document.createElement('span');
+    el.className = 'remote-cursor-widget';
+    el.style.setProperty('--cursor-color', this.color);
+    el.setAttribute('data-name', this.name);
+    return el;
+  }
+  ignoreEvent() { return true; }
+}
+
+const remoteCursors = new Map(); // userId -> { pos, username, color }
+
+function rebuildCursorDecos() {
+  if (!editor) return;
+  const maxPos = editor.state.doc.length;
+  const ranges = [];
+  remoteCursors.forEach(({ pos, username: uname, color }) => {
+    const p = Math.max(0, Math.min(pos, maxPos));
+    try {
+      ranges.push(Decoration.widget({ widget: new RemoteCursorWidget(color, uname), side: 1 }).range(p));
+    } catch(_) {}
+  });
+  ranges.sort((a, b) => a.from - b.from);
+  try {
+    editor.dispatch({ effects: setCursorEffect.of(Decoration.set(ranges, true)) });
+  } catch(_) {}
+}
+
+// Throttled cursor emit
+let lastCursorPos = -1;
+let cursorThrottleId = null;
+function emitCursor(pos) {
+  if (pos === lastCursorPos) return;
+  lastCursorPos = pos;
+  clearTimeout(cursorThrottleId);
+  cursorThrottleId = setTimeout(() => {
+    socket.emit('cursor-move', { roomName, pos });
+  }, 60);
+}
+
+// ── Saved indicator ────────────────────────────────────────────────────────
+let saveIndicatorTimer = null;
+function markSaving() {
+  const el = document.getElementById('status-saved');
+  el.textContent = '● Saving…';
+  el.className = 'status-item saving';
+  clearTimeout(saveIndicatorTimer);
+  saveIndicatorTimer = setTimeout(() => {
+    el.textContent = '✓ Saved';
+    el.className = 'status-item saved';
+  }, 2500);
+}
+
+// ── Line/col display ───────────────────────────────────────────────────────
+function updateLineCol(state) {
+  if (!state) return;
+  const pos  = state.selection.main.head;
+  const line = state.doc.lineAt(pos);
+  const col  = pos - line.from + 1;
+  document.getElementById('status-lncol').textContent = `Ln ${line.number}, Col ${col}`;
+}
+
+// ── Font size ──────────────────────────────────────────────────────────────
+function changeFontSize(delta) {
+  fontSize = Math.max(10, Math.min(26, fontSize + delta));
+  localStorage.setItem('cs_fontSize', fontSize);
+  document.documentElement.style.setProperty('--editor-font-size', fontSize + 'px');
+  document.getElementById('font-size-val').textContent = fontSize;
+}
+
 // ── Editor ────────────────────────────────────────────────────────────────
 function initEditor(code, lang) {
   if (editor) { editor.destroy(); editor = null; }
@@ -676,14 +999,24 @@ function initEditor(code, lang) {
         basicSetup, oneDark,
         langComp.of(getLangExt(lang)),
         editComp.of(EditorView.editable.of(myCanEdit)),
+        cursorField,
         EditorView.updateListener.of((u) => {
-          if (!u.docChanged || isRemoteChange || !myCanEdit) return;
-          socket.emit('code-change', { roomName, fileId: activeFileId, code: u.state.doc.toString() });
+          if (u.selectionSet && !isRemoteChange) {
+            emitCursor(u.state.selection.main.head);
+          }
+          if (u.docChanged && !isRemoteChange && myCanEdit) {
+            socket.emit('code-change', { roomName, fileId: activeFileId, code: u.state.doc.toString() });
+            markSaving();
+          }
+          if (u.selectionSet || u.docChanged) updateLineCol(u.state);
         }),
       ],
     }),
     parent: document.getElementById('editor-wrap'),
   });
+  updateLineCol(editor.state);
+  // Replay any existing remote cursors for this file
+  rebuildCursorDecos();
 }
 
 function applyRemoteCode(code) {
@@ -701,19 +1034,17 @@ function applyLang(lang) {
 function setEditability(canEdit) {
   myCanEdit = canEdit;
   if (editor) editor.dispatch({ effects: editComp.reconfigure(EditorView.editable.of(canEdit)) });
-  // Show/hide view-only UI
   document.getElementById('readonly-bar').classList.toggle('show', !canEdit);
   const reqBtn = document.getElementById('request-access-btn');
   if (!currentUser?.isHost) {
     reqBtn.style.display = canEdit ? 'none' : 'flex';
     if (canEdit) reqBtn.classList.remove('pending');
   }
-  // Update language select disabled state
   document.getElementById('lang-select').disabled = !canEdit;
 }
 
 // ── Tabs ──────────────────────────────────────────────────────────────────
-function renderTabs() {
+function renderTabs(newFileId) {
   const bar    = document.getElementById('tabbar');
   const newBtn = document.getElementById('new-file-btn');
   bar.querySelectorAll('.tab').forEach(t => t.remove());
@@ -721,6 +1052,7 @@ function renderTabs() {
   files.forEach((file) => {
     const tab = document.createElement('div');
     tab.className = 'tab' + (file.id === activeFileId ? ' active' : '');
+    if (file.id === newFileId) tab.classList.add('tab-new');
     tab.dataset.id = file.id;
 
     const icon = document.createElement('span');
@@ -750,7 +1082,6 @@ function renderTabs() {
     bar.insertBefore(tab, newBtn);
   });
 
-  // Show/hide new file button
   newBtn.style.display = myCanEdit ? '' : 'none';
 }
 
@@ -788,6 +1119,10 @@ function switchToFile(fileId) {
     const cur = files.find(f => f.id === activeFileId);
     if (cur) cur.code = editor.state.doc.toString();
   }
+  // Clear remote cursors when switching files
+  remoteCursors.clear();
+  lastCursorPos = -1;
+
   activeFileId = fileId;
   initEditor(file.code, file.language);
   document.getElementById('lang-select').value = file.language;
@@ -896,6 +1231,119 @@ function addHostBadge() {
   document.getElementById('room-pill').appendChild(b);
 }
 
+// ── Chat ──────────────────────────────────────────────────────────────────
+let msgCount = 0;
+
+function toggleChat() {
+  chatOpen = !chatOpen;
+  document.getElementById('chat-panel').classList.toggle('open', chatOpen);
+  document.getElementById('chat-btn').classList.toggle('active', chatOpen);
+  if (chatOpen) {
+    chatUnread = 0;
+    document.getElementById('chat-badge').style.display = 'none';
+    document.getElementById('chat-badge').textContent = '0';
+    setTimeout(() => document.getElementById('chat-input').focus(), 260);
+    // Scroll to bottom
+    const msgs = document.getElementById('chat-messages');
+    msgs.scrollTop = msgs.scrollHeight;
+  }
+}
+
+function sendChat() {
+  const input = document.getElementById('chat-input');
+  const text = input.value.trim();
+  if (!text) return;
+  socket.emit('chat-message', { roomName, text });
+  // Stop typing indicator
+  if (isTyping) {
+    socket.emit('typing-stop', { roomName });
+    isTyping = false;
+    clearTimeout(typingTimer);
+  }
+  input.value = '';
+}
+
+function renderChatMsg({ userId, username: uname, color, text, ts }) {
+  const msgs = document.getElementById('chat-messages');
+  // Remove empty state
+  const empty = msgs.querySelector('.chat-empty');
+  if (empty) empty.remove();
+
+  const isMe = currentUser && userId === currentUser.id;
+  const time = new Date(ts);
+  const hh = String(time.getHours()).padStart(2,'0');
+  const mm = String(time.getMinutes()).padStart(2,'0');
+
+  const wrap = document.createElement('div');
+  wrap.className = 'chat-msg' + (isMe ? ' me' : '');
+
+  const header = document.createElement('div');
+  header.className = 'chat-msg-header';
+
+  const userEl = document.createElement('span');
+  userEl.className = 'chat-msg-user';
+  userEl.textContent = isMe ? 'You' : uname;
+  userEl.style.color = color;
+
+  const timeEl = document.createElement('span');
+  timeEl.className = 'chat-msg-time';
+  timeEl.textContent = `${hh}:${mm}`;
+
+  header.appendChild(userEl);
+  header.appendChild(timeEl);
+
+  const textEl = document.createElement('div');
+  textEl.className = 'chat-msg-text';
+  textEl.textContent = text;
+
+  wrap.appendChild(header);
+  wrap.appendChild(textEl);
+  msgs.appendChild(wrap);
+
+  // Auto-scroll
+  msgs.scrollTop = msgs.scrollHeight;
+
+  msgCount++;
+
+  // Unread badge when panel closed
+  if (!chatOpen && !isMe) {
+    chatUnread++;
+    const badge = document.getElementById('chat-badge');
+    badge.textContent = chatUnread > 9 ? '9+' : chatUnread;
+    badge.style.display = 'inline-block';
+  }
+}
+
+// ── Typing indicator ──────────────────────────────────────────────────────
+const typingUsers = new Map(); // userId -> username
+let typingTimer = null;
+let isTyping = false;
+
+document.getElementById('chat-input').addEventListener('keydown', (e) => {
+  if (e.key === 'Enter') { e.preventDefault(); sendChat(); return; }
+});
+
+document.getElementById('chat-input').addEventListener('input', () => {
+  if (!isTyping) {
+    socket.emit('typing-start', { roomName });
+    isTyping = true;
+  }
+  clearTimeout(typingTimer);
+  typingTimer = setTimeout(() => {
+    socket.emit('typing-stop', { roomName });
+    isTyping = false;
+  }, 2500);
+});
+
+function renderTyping() {
+  const names = Array.from(typingUsers.values());
+  const el = document.getElementById('typing-indicator');
+  if (!names.length) { el.textContent = ''; return; }
+  if (names.length === 1) el.textContent = `${names[0]} is typing…`;
+  else if (names.length <= 2) el.textContent = `${names.join(' and ')} are typing…`;
+  else el.textContent = `${names.length} people are typing…`;
+}
+
 // ── Access panel (host only) ──────────────────────────────────────────────
 function toggleAccessPanel() {
   document.getElementById('access-panel').classList.toggle('show');
@@ -903,22 +1351,16 @@ function toggleAccessPanel() {
 function closeAccessPanel() {
   document.getElementById('access-panel').classList.remove('show');
 }
-
 function setAccessMode(mode) {
   socket.emit('set-default-access', { roomName, access: mode });
   closeAccessPanel();
 }
-
 function renderAccessPanel() {
-  // Update mode buttons
   document.getElementById('mode-edit-btn').classList.toggle('active', defaultAccess === 'edit');
   document.getElementById('mode-view-btn').classList.toggle('active', defaultAccess === 'view');
-
-  // Update access btn label
   document.getElementById('access-btn-label').textContent =
     defaultAccess === 'view' ? 'View Only' : 'All can edit';
 
-  // Render user list
   const list = document.getElementById('access-user-list');
   list.innerHTML = '';
   roomUsers.forEach((u) => {
@@ -946,7 +1388,6 @@ function renderAccessPanel() {
 
     item.appendChild(av); item.appendChild(name); item.appendChild(badge);
 
-    // Grant / Revoke button (not for host)
     if (!u.isHost && currentUser && u.id !== currentUser.id) {
       const btn = document.createElement('button');
       btn.className = 'aui-action';
@@ -959,7 +1400,6 @@ function renderAccessPanel() {
       }
       item.appendChild(btn);
     }
-
     list.appendChild(item);
   });
 }
@@ -981,7 +1421,7 @@ function showToast({ icon, title, msg, actions, duration = 5000 }) {
 
   const top = document.createElement('div');
   top.className = 'toast-top';
-  const iconEl = document.createElement('span'); iconEl.className = 'toast-icon'; iconEl.textContent = icon;
+  const iconEl  = document.createElement('span'); iconEl.className  = 'toast-icon';  iconEl.textContent  = icon;
   const titleEl = document.createElement('span'); titleEl.className = 'toast-title'; titleEl.textContent = title;
   top.appendChild(iconEl); top.appendChild(titleEl);
 
@@ -990,19 +1430,18 @@ function showToast({ icon, title, msg, actions, duration = 5000 }) {
   toast.appendChild(top); toast.appendChild(msgEl);
 
   if (actions && actions.length) {
-    const actionsEl = document.createElement('div');
-    actionsEl.className = 'toast-actions';
+    const actEl = document.createElement('div');
+    actEl.className = 'toast-actions';
     actions.forEach(({ label, cls, onClick }) => {
       const btn = document.createElement('button');
       btn.className = cls; btn.textContent = label;
       btn.onclick = () => { onClick(); dismissToast(toast); };
-      actionsEl.appendChild(btn);
+      actEl.appendChild(btn);
     });
-    toast.appendChild(actionsEl);
+    toast.appendChild(actEl);
   }
 
   container.appendChild(toast);
-
   if (duration) setTimeout(() => dismissToast(toast), duration);
   return toast;
 }
@@ -1012,9 +1451,20 @@ function dismissToast(toast) {
   setTimeout(() => toast.remove(), 250);
 }
 
+// ── Recent rooms — save to localStorage ───────────────────────────────────
+function saveRecentRoom(name) {
+  try {
+    const stored = JSON.parse(localStorage.getItem('cs_recent') || '[]');
+    const filtered = stored.filter(r => r.name !== name);
+    filtered.unshift({ name, ts: Date.now() });
+    localStorage.setItem('cs_recent', JSON.stringify(filtered.slice(0, 6)));
+  } catch(_) {}
+}
+
 // ── Keyboard shortcuts ────────────────────────────────────────────────────
 document.addEventListener('keydown', (e) => {
   if ((e.ctrlKey || e.metaKey) && e.key === 'n') { e.preventDefault(); openNewFileDialog(); }
+  if ((e.ctrlKey || e.metaKey) && e.key === 'k') { e.preventDefault(); toggleChat(); }
   if (e.key === 'Escape') {
     closeAccessPanel();
     closeQrDialog();
@@ -1038,9 +1488,11 @@ socket.on('connect', () => {
 });
 
 socket.on('room-state', ({ files: sf, users, currentUser: me, defaultAccess: da }) => {
-  currentUser = me; files = sf; activeFileId = files[0]?.id ?? null;
+  currentUser   = me;
+  files         = sf;
+  activeFileId  = files[0]?.id ?? null;
   defaultAccess = da;
-  myCanEdit = me.canEdit;
+  myCanEdit     = me.canEdit;
 
   document.title = roomName + ' — CodeShare';
   document.getElementById('room-name-text').textContent = roomName;
@@ -1056,7 +1508,14 @@ socket.on('room-state', ({ files: sf, users, currentUser: me, defaultAccess: da 
 
   setEditability(me.canEdit);
   renderTabs(); renderUsers(users); updateStatus();
-  document.getElementById('splash').style.display = 'none';
+
+  // Save this room to recent
+  saveRecentRoom(roomName);
+
+  // Smooth splash fade
+  const splash = document.getElementById('splash');
+  splash.classList.add('hiding');
+  setTimeout(() => { splash.style.display = 'none'; }, 350);
 });
 
 socket.on('code-change', ({ fileId, code }) => {
@@ -1070,11 +1529,19 @@ socket.on('language-change', ({ fileId, language }) => {
   const file = files.find(f => f.id === fileId);
   if (!file) return;
   file.language = language;
-  if (fileId === activeFileId) { applyLang(language); document.getElementById('lang-select').value = language; updateStatus(); }
+  if (fileId === activeFileId) {
+    applyLang(language);
+    document.getElementById('lang-select').value = language;
+    updateStatus();
+  }
   renderTabs();
 });
 
-socket.on('file-created', ({ file }) => { files.push(file); renderTabs(); switchToFile(file.id); });
+socket.on('file-created', ({ file }) => {
+  files.push(file);
+  renderTabs(file.id);
+  switchToFile(file.id);
+});
 
 socket.on('file-renamed', ({ fileId, name }) => {
   const file = files.find(f => f.id === fileId);
@@ -1093,8 +1560,20 @@ socket.on('file-deleted', ({ fileId }) => {
   renderTabs();
 });
 
-socket.on('user-joined', ({ users }) => renderUsers(users));
-socket.on('user-left',   ({ users, newHostId }) => {
+socket.on('user-joined', ({ users, newUser }) => {
+  renderUsers(users);
+  if (newUser && newUser.id !== socket.id) {
+    showToast({ icon: '👋', title: `${newUser.username} joined`, msg: 'A new person has joined the room.', duration: 3000 });
+  }
+});
+
+socket.on('user-left', ({ users, leftUserId, newHostId }) => {
+  // Remove cursor for user who left
+  remoteCursors.delete(leftUserId);
+  typingUsers.delete(leftUserId);
+  renderTyping();
+  rebuildCursorDecos();
+
   renderUsers(users);
   if (newHostId === socket.id && currentUser && !currentUser.isHost) {
     currentUser.isHost = true; currentUser.canEdit = true;
@@ -1105,19 +1584,36 @@ socket.on('user-left',   ({ users, newHostId }) => {
   }
 });
 
-// ── Access control socket events ──────────────────────────────────────────
+// ── Live cursors ──────────────────────────────────────────────────────────
+socket.on('cursor-move', ({ userId, username: uname, color, pos }) => {
+  remoteCursors.set(userId, { pos, username: uname, color });
+  rebuildCursorDecos();
+});
 
-// Room default access mode changed by host
+// ── Chat events ───────────────────────────────────────────────────────────
+socket.on('chat-message', (data) => {
+  renderChatMsg(data);
+});
+
+// ── Typing events ─────────────────────────────────────────────────────────
+socket.on('typing-start', ({ userId, username: uname }) => {
+  typingUsers.set(userId, uname);
+  renderTyping();
+});
+socket.on('typing-stop', ({ userId }) => {
+  typingUsers.delete(userId);
+  renderTyping();
+});
+
+// ── Access control events ─────────────────────────────────────────────────
 socket.on('access-mode-changed', ({ defaultAccess: da, users }) => {
   defaultAccess = da;
   renderUsers(users);
-  // Update my canEdit based on server's recomputed user list
   const me = users.find(u => u.id === socket.id);
   if (me) setEditability(me.canEdit);
   if (currentUser?.isHost) renderAccessPanel();
 });
 
-// User list updated (grant/revoke happened)
 socket.on('user-access-updated', ({ users }) => {
   renderUsers(users);
   const me = users.find(u => u.id === socket.id);
@@ -1125,13 +1621,11 @@ socket.on('user-access-updated', ({ users }) => {
   if (currentUser?.isHost) renderAccessPanel();
 });
 
-// Host receives an edit request from a guest
 socket.on('edit-requested', ({ userId, username: reqUser }) => {
   showToast({
-    icon: '✋',
-    title: 'Edit access requested',
+    icon: '✋', title: 'Edit access requested',
     msg: `${reqUser} wants to edit in this room.`,
-    duration: 0, // stays until acted upon
+    duration: 0,
     actions: [
       { label: '✓ Approve', cls: 'toast-approve', onClick: () => socket.emit('grant-edit', { roomName, userId }) },
       { label: '✕ Deny',   cls: 'toast-deny',    onClick: () => socket.emit('deny-edit',  { roomName, userId }) },
@@ -1139,7 +1633,6 @@ socket.on('edit-requested', ({ userId, username: reqUser }) => {
   });
 });
 
-// I was granted edit access
 socket.on('edit-access-granted', () => {
   setEditability(true);
   const reqBtn = document.getElementById('request-access-btn');
@@ -1149,7 +1642,6 @@ socket.on('edit-access-granted', () => {
   showToast({ icon: '✅', title: 'Edit access granted!', msg: 'The host has approved your request. You can now edit.', duration: 4000 });
 });
 
-// My request was denied
 socket.on('edit-access-denied', () => {
   const reqBtn = document.getElementById('request-access-btn');
   reqBtn.classList.remove('pending');
@@ -1157,7 +1649,6 @@ socket.on('edit-access-denied', () => {
   showToast({ icon: '❌', title: 'Request denied', msg: 'The host declined your request to edit.', duration: 4000 });
 });
 
-// My edit access was revoked by host
 socket.on('edit-access-revoked', () => {
   setEditability(false);
   showToast({ icon: '🔒', title: 'Edit access removed', msg: 'The host has changed your access to view only.', duration: 5000 });
@@ -1174,7 +1665,7 @@ window.copyInviteLink     = () => {
     const btn = document.getElementById('copy-btn');
     const lbl = document.getElementById('copy-btn-label');
     btn.classList.add('copied'); lbl.textContent = 'Copied!';
-    setTimeout(() => { btn.classList.remove('copied'); lbl.textContent = 'Invite Link'; }, 2000);
+    setTimeout(() => { btn.classList.remove('copied'); lbl.textContent = 'Invite'; }, 2000);
   });
 };
 window.openNewFileDialog  = openNewFileDialog;
@@ -1188,6 +1679,9 @@ window.toggleAccessPanel  = toggleAccessPanel;
 window.closeAccessPanel   = closeAccessPanel;
 window.setAccessMode      = setAccessMode;
 window.requestEditAccess  = requestEditAccess;
+window.toggleChat         = toggleChat;
+window.sendChat           = sendChat;
+window.changeFontSize     = changeFontSize;
 </script>
 </body>
 </html>

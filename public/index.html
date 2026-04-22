@@ -297,6 +297,32 @@
     }
     .error-msg.show { display: flex; }
 
+    /* ── Recent rooms ────────────────────────────────────────── */
+    .recent-rooms {
+      width: 100%;
+      max-width: 460px;
+      margin-bottom: 1.25rem;
+    }
+    .recent-label {
+      font-size: 0.72rem;
+      font-weight: 600;
+      color: var(--text3);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 0.6rem;
+    }
+    .recent-list { display: flex; flex-wrap: wrap; gap: 0.4rem; }
+    .recent-chip {
+      display: inline-flex; align-items: center; gap: 0.35rem;
+      background: var(--bg2); border: 1px solid var(--border);
+      border-radius: 20px; padding: 0.3rem 0.8rem;
+      font-size: 0.78rem; color: var(--text2); cursor: pointer;
+      text-decoration: none; font-family: inherit;
+      transition: border-color 0.15s, color 0.15s, background 0.15s;
+    }
+    .recent-chip:hover { border-color: var(--accent); color: var(--text); background: var(--accent-bg); }
+    .recent-chip-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--accent); opacity: 0.6; }
+
     /* ── Footer ──────────────────────────────────────────────── */
     .footer {
       margin-top: auto;
@@ -325,6 +351,12 @@
       <span class="badge blue">⚡ Real-time sync</span>
       <span class="badge">🔒 Password protected</span>
     </div>
+  </div>
+
+  <!-- Recent rooms -->
+  <div class="recent-rooms" id="recent-rooms-wrap" style="display:none">
+    <div class="recent-label">Recent rooms</div>
+    <div class="recent-list" id="recent-list"></div>
   </div>
 
   <!-- Main card -->
@@ -414,6 +446,28 @@
 </div><!-- .page -->
 
 <script>
+  // ── Recent rooms ──────────────────────────────────────────────────────────
+  (function renderRecent() {
+    try {
+      const rooms = JSON.parse(localStorage.getItem('cs_recent') || '[]');
+      if (!rooms.length) return;
+      const wrap = document.getElementById('recent-rooms-wrap');
+      const list = document.getElementById('recent-list');
+      wrap.style.display = '';
+      rooms.forEach(({ name }) => {
+        const chip = document.createElement('button');
+        chip.className = 'recent-chip';
+        chip.innerHTML = `<span class="recent-chip-dot"></span><span>#${name}</span>`;
+        chip.onclick = () => {
+          switchTab('join');
+          document.getElementById('join-name').value = name;
+          document.getElementById('join-pass').focus();
+        };
+        list.appendChild(chip);
+      });
+    } catch(_) {}
+  })();
+
   (function prefill() {
     const pathMatch = window.location.pathname.match(/^\/room\/(.+)$/);
     const params    = new URLSearchParams(window.location.search);
@@ -424,7 +478,7 @@
       document.getElementById('join-name').value = roomHint;
       document.getElementById('join-pass').focus();
     }
-  })();
+  })()
 
   function switchTab(tab) {
     const isCreate = tab === 'create';

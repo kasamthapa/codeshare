@@ -294,6 +294,48 @@ io.on('connection', (socket) => {
     console.log(`[access] revoked edit from ${user?.username} in "${roomName}"`);
   });
 
+  // ── Chat ──────────────────────────────────────────────────────────────────
+
+  socket.on('chat-message', ({ roomName, text }) => {
+    const room = rooms[roomName]; if (!room) return;
+    const user = room.users.get(socket.id); if (!user) return;
+    const clean = String(text || '').trim().slice(0, 500);
+    if (!clean) return;
+    io.to(roomName).emit('chat-message', {
+      userId:   socket.id,
+      username: user.username,
+      color:    user.color,
+      text:     clean,
+      ts:       Date.now(),
+    });
+  });
+
+  // ── Typing indicators ─────────────────────────────────────────────────────
+
+  socket.on('typing-start', ({ roomName }) => {
+    const room = rooms[roomName]; if (!room) return;
+    const user = room.users.get(socket.id); if (!user) return;
+    socket.to(roomName).emit('typing-start', { userId: socket.id, username: user.username });
+  });
+
+  socket.on('typing-stop', ({ roomName }) => {
+    const room = rooms[roomName]; if (!room) return;
+    socket.to(roomName).emit('typing-stop', { userId: socket.id });
+  });
+
+  // ── Live cursors ──────────────────────────────────────────────────────────
+
+  socket.on('cursor-move', ({ roomName, pos }) => {
+    const room = rooms[roomName]; if (!room) return;
+    const user = room.users.get(socket.id); if (!user) return;
+    socket.to(roomName).emit('cursor-move', {
+      userId:   socket.id,
+      username: user.username,
+      color:    user.color,
+      pos:      typeof pos === 'number' ? pos : 0,
+    });
+  });
+
   // ── Disconnect ─────────────────────────────────────────────────────────────
 
   socket.on('disconnect', () => {
@@ -303,6 +345,8 @@ io.on('connection', (socket) => {
     const leaving = room.users.get(socket.id);
     room.users.delete(socket.id);
     room.editUsers.delete(socket.id); // clean up any individual grant
+    // Clear typing indicator for this user
+    socket.to(roomName).emit('typing-stop', { userId: socket.id });
     console.log(`[room] ${leaving?.username ?? socket.id} left "${roomName}" (${room.users.size} remaining)`);
 
     if (room.users.size === 0) {

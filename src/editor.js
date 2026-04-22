@@ -9,16 +9,16 @@
  */
 
 // Core
-export { EditorView }               from '@codemirror/view';
-export { EditorState, Compartment } from '@codemirror/state';
-export { basicSetup }               from 'codemirror';
+export { EditorView, Decoration, WidgetType } from '@codemirror/view';
+export { EditorState, Compartment, StateField, StateEffect } from '@codemirror/state';
+export { basicSetup }                          from 'codemirror';
 
 // Dark theme
-export { oneDark }                  from '@codemirror/theme-one-dark';
+export { oneDark }                             from '@codemirror/theme-one-dark';
 
 // Language support
-export { python }                   from '@codemirror/lang-python';
-export { javascript }               from '@codemirror/lang-javascript';
-export { java }                     from '@codemirror/lang-java';
-export { cpp }                      from '@codemirror/lang-cpp';
-export { csharp }                   from '@replit/codemirror-lang-csharp';
+export { python }                              from '@codemirror/lang-python';
+export { javascript }                          from '@codemirror/lang-javascript';
+export { java }                                from '@codemirror/lang-java';
+export { cpp }                                 from '@codemirror/lang-cpp';
+export { csharp }                              from '@replit/codemirror-lang-csharp';
