@@ -118,14 +118,21 @@ app.get('/health', (_req, res) =>
 
 // ── REST API ───────────────────────────────────────────────────────────────
 
-// ── Wandbox compiler cache ────────────────────────────────────────────────
-// Wandbox (wandbox.org) is the free code execution backend — no API key needed.
-// We fetch its compiler list once and cache it for 6 hours.
-let _wandboxCompilers = null;
-let _wandboxCacheTime = 0;
+// ── Wandbox execution backend ─────────────────────────────────────────────
+// Wandbox (wandbox.org) is a free code execution service — no API key needed.
+// Hardcoded compiler names avoid an extra round-trip to fetch the list.
+// Refresh them periodically in the background so they stay current.
 const WANDBOX = 'https://wandbox.org';
 
-// Language → filter function for the Wandbox compiler list
+const WANDBOX_COMPILERS = {
+  python:     'cpython-3.14.0',
+  javascript: 'nodejs-20.17.0',
+  java:       'openjdk-jdk-22+36',
+  cpp:        'gcc-13.2.0',
+  csharp:     'mono-6.12.0.199',
+};
+
+// Filters used to pick the latest compiler when refreshing in background
 const WANDBOX_FILTER = {
   python:     n => n.startsWith('cpython-3')  && !n.includes('head'),
   javascript: n => n.startsWith('nodejs-')    && !n.includes('head'),
@@ -134,65 +141,72 @@ const WANDBOX_FILTER = {
   csharp:     n => n.startsWith('mono-')      && !n.includes('head'),
 };
 
-// Sort compiler names by their embedded version numbers (numeric, not lexicographic)
 function semverSort(a, b) {
   const nums = s => (s.match(/\d+/g) || []).map(Number);
   const an = nums(a), bn = nums(b);
   for (let i = 0; i < Math.max(an.length, bn.length); i++) {
-    const diff = (an[i] || 0) - (bn[i] || 0);
-    if (diff !== 0) return diff;
+    const d = (an[i] || 0) - (bn[i] || 0);
+    if (d !== 0) return d;
   }
   return 0;
 }
 
-async function pickWandboxCompiler(lang) {
-  const now = Date.now();
-  if (!_wandboxCompilers || now - _wandboxCacheTime > 6 * 3_600_000) {
-    const r = await fetch(`${WANDBOX}/api/list.json`, { signal: AbortSignal.timeout(8000) });
-    if (!r.ok) throw new Error(`Wandbox list error: ${r.status}`);
-    _wandboxCompilers = await r.json();
-    _wandboxCacheTime = now;
-    console.log(`[run] Cached ${_wandboxCompilers.length} Wandbox compilers`);
-  }
-  const filter = WANDBOX_FILTER[lang];
-  if (!filter) return null;
-  const names = _wandboxCompilers.map(c => c.name).filter(filter).sort(semverSort);
-  return names[names.length - 1] ?? null; // latest release version
+// Refresh hardcoded compiler names in the background (every 12 h)
+async function refreshWandboxCompilers() {
+  try {
+    const ctrl = new AbortController();
+    const t = setTimeout(() => ctrl.abort(), 10_000);
+    const r = await fetch(`${WANDBOX}/api/list.json`, { signal: ctrl.signal });
+    clearTimeout(t);
+    if (!r.ok) return;
+    const list = await r.json();
+    for (const [lang, fn] of Object.entries(WANDBOX_FILTER)) {
+      const names = list.map(c => c.name).filter(fn).sort(semverSort);
+      if (names.length) WANDBOX_COMPILERS[lang] = names[names.length - 1];
+    }
+    console.log('[run] Wandbox compilers refreshed:', JSON.stringify(WANDBOX_COMPILERS));
+  } catch (_) { /* non-fatal */ }
 }
+// Warm up after 5 s so it doesn't delay startup, then every 12 h
+setTimeout(refreshWandboxCompilers, 5_000);
+setInterval(refreshWandboxCompilers, 12 * 3_600_000);
 
-// Code execution proxy — normalises Wandbox response to a Piston-like shape
-// so the browser client needs no changes.
+// Code execution proxy — calls Wandbox and normalises the response to a
+// Piston-like shape so the browser client needs no changes.
 app.post('/api/run', async (req, res) => {
   const { language, code } = req.body;
   if (!language || !code)
     return res.status(400).json({ error: 'language and code are required' });
   if (typeof code !== 'string' || code.length > 65_536)
     return res.status(400).json({ error: 'Code exceeds 64 KB limit' });
-  if (!WANDBOX_PREFIX[language])
+
+  const compiler = WANDBOX_COMPILERS[language];
+  if (!compiler)
     return res.status(400).json({ error: `Language "${language}" is not supported` });
 
-  try {
-    const compiler = await pickWandboxCompiler(language);
-    if (!compiler)
-      return res.status(400).json({ error: `No compiler found for "${language}"` });
+  // Manual abort controller — more reliable than AbortSignal.timeout across Node versions
+  const ctrl = new AbortController();
+  const timer = setTimeout(() => ctrl.abort(), 15_000);
 
+  try {
     const r = await fetch(`${WANDBOX}/api/compile.json`, {
       method:  'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         compiler,
         code,
-        options:               language === 'cpp' ? 'warning' : '',
+        options:               '',
         stdin:                 '',
         'compiler-option-raw': '',
         'runtime-option-raw':  '',
         save: false,
       }),
-      signal: AbortSignal.timeout(20000),
+      signal: ctrl.signal,
     });
+    clearTimeout(timer);
 
     if (!r.ok) {
-      const txt = await r.text();
+      const txt = await r.text().catch(() => '');
       return res.status(r.status).json({ error: `Wandbox error ${r.status}: ${txt.slice(0, 200)}` });
     }
 
@@ -202,7 +216,6 @@ app.post('/api/run', async (req, res) => {
 
     console.log(`[run] compiler=${compiler} exit=${w.status} stdout=${JSON.stringify((w.program_output||'').slice(0,80))}`);
 
-    // Return in the same shape the client already knows how to display
     res.json({
       run: {
         stdout: w.program_output || '',
@@ -214,8 +227,14 @@ app.post('/api/run', async (req, res) => {
     });
 
   } catch (err) {
+    clearTimeout(timer);
     console.error('[run] Wandbox error:', err.message);
-    res.status(502).json({ error: `Code runner error: ${err.message}` });
+    const isTimeout = err.name === 'AbortError';
+    res.status(502).json({
+      error: isTimeout
+        ? 'Code runner timed out (15 s). Try shorter code or simpler input.'
+        : `Code runner error: ${err.message}`,
+    });
   }
 });
 

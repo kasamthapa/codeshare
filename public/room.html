@@ -1780,6 +1780,14 @@ async function runCode() {
   runBtn.textContent = '⏳ Running…';
   runBtn.classList.add('running');
 
+  // Safety net: reset UI after 25 s even if the server never responds
+  const uiTimeout = setTimeout(() => {
+    runBtn.disabled = false;
+    runBtn.textContent = '▶ Run';
+    runBtn.classList.remove('running');
+    setOutputContent('<span class="out-syserr">Timed out — no response from server after 25 s.</span>');
+  }, 25_000);
+
   try {
     const res  = await fetch('/api/run', {
       method:  'POST',
@@ -1832,6 +1840,7 @@ async function runCode() {
   } catch (err) {
     setOutputContent(`<span class="out-syserr">Network error: ${escHtml(err.message)}</span>`);
   } finally {
+    clearTimeout(uiTimeout);
     runBtn.disabled  = false;
     runBtn.textContent = '▶ Run';
     runBtn.classList.remove('running');
