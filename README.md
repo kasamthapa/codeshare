@@ -109,18 +109,6 @@ All settings are optional. The app runs fully in-memory with no external depende
 
 ---
 
-### Fly.io
-
-```bash
-fly launch          # first time — prompts for app name and region
-fly deploy          # subsequent updates
-fly secrets set SITE_URL=https://your-app.fly.dev
-```
-
-Edit `fly.toml` to change the region (`sin` = Singapore, `bom` = Mumbai, `lax` = Los Angeles).
-
----
-
 ### Docker
 
 ```bash
@@ -153,7 +141,6 @@ codeshare/
 │   └── manifest.json  # PWA manifest
 ├── build.js           # esbuild config — outputs public/cm.bundle.js
 ├── Dockerfile         # Two-stage Docker build
-├── fly.toml           # Fly.io deployment config
 └── render.yaml        # Render.com deployment config
 ```
 
