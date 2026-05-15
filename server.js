@@ -4,6 +4,7 @@ const express     = require('express');
 const http        = require('http');
 const { Server }  = require('socket.io');
 const path        = require('path');
+const fs          = require('fs');
 const compression = require('compression');
 const helmet      = require('helmet');
 const { MongoClient } = require('mongodb');
@@ -12,8 +13,9 @@ const app    = express();
 const server = http.createServer(app);
 const io     = new Server(server, { maxHttpBufferSize: 1e6, pingInterval: 25000, pingTimeout: 60000 });
 
-const PORT   = process.env.PORT || 3000;
-const isProd = process.env.NODE_ENV === 'production';
+const PORT     = process.env.PORT || 3000;
+const isProd   = process.env.NODE_ENV === 'production';
+const SITE_URL = (process.env.SITE_URL || '').replace(/\/$/, '');
 
 // ── Middleware ─────────────────────────────────────────────────────────────
 app.set('trust proxy', 1);
@@ -21,6 +23,36 @@ app.use(compression());
 app.use(helmet({ contentSecurityPolicy: false }));
 app.use(express.json({ limit: '100kb' }));
 app.use(express.static(path.join(__dirname, 'public'), { maxAge: isProd ? '7d' : 0 }));
+
+// ── SEO: inject SITE_URL into index.html, serve robots + sitemap ──────────
+const _indexHtml = fs.readFileSync(path.join(__dirname, 'public', 'index.html'), 'utf8');
+
+app.get('/', (_req, res) => {
+  const html = _indexHtml.replace(/%%SITE_URL%%/g, SITE_URL);
+  res.setHeader('Content-Type', 'text/html; charset=utf-8');
+  res.send(html);
+});
+
+app.get('/robots.txt', (_req, res) => {
+  res.setHeader('Content-Type', 'text/plain');
+  res.send(
+    `User-agent: *\nAllow: /\nDisallow: /room/\nDisallow: /api/\n\nSitemap: ${SITE_URL}/sitemap.xml\n`
+  );
+});
+
+app.get('/sitemap.xml', (_req, res) => {
+  const now = new Date().toISOString().split('T')[0];
+  res.setHeader('Content-Type', 'application/xml; charset=utf-8');
+  res.send(`<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  <url>
+    <loc>${SITE_URL}/</loc>
+    <lastmod>${now}</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>1.0</priority>
+  </url>
+</urlset>`);
+});
 
 // ── In-memory room store ───────────────────────────────────────────────────
 const rooms = {};

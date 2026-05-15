@@ -12,3 +12,5 @@ services:
     envVars:
       - key: NODE_ENV
         value: production
+      - key: SITE_URL
+        value: https://codeshare-218h.onrender.com

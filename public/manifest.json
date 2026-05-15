@@ -1,7 +1,7 @@
 {
   "name": "CodeShare",
   "short_name": "CodeShare",
-  "description": "Real-time collaborative code sharing for classrooms",
+  "description": "Free real-time collaborative code editor for classrooms. No login required. Run Python, JavaScript, Java, C++, and C# together.",
   "start_url": "/?v=2",
   "display": "standalone",
   "background_color": "#0d1117",

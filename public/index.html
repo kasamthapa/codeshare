@@ -3,18 +3,158 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>CodeShare — Real-time Collaborative Editor</title>
+
+    <!-- ── Primary SEO ──────────────────────────────────────────────────── -->
+    <title>CodeShare — Free Real-time Collaborative Code Editor for Classrooms</title>
+    <meta name="description" content="CodeShare is a free, no-login real-time collaborative code editor for classrooms and teams. Write, share, and run Python, JavaScript, Java, C++, and C# together — no account needed." />
+    <meta name="keywords" content="collaborative code editor, real-time code sharing, online code editor, classroom coding, pair programming, code collaboration, Python JavaScript Java C++ C#, free code editor, no login code editor" />
+    <meta name="author" content="Kasam Thapa Magar" />
+    <meta name="robots" content="index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1" />
+    <link rel="canonical" href="%%SITE_URL%%" />
+
+    <!-- ── Open Graph ───────────────────────────────────────────────────── -->
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="CodeShare" />
+    <meta property="og:title" content="CodeShare — Free Real-time Collaborative Code Editor" />
+    <meta property="og:description" content="No-login, password-protected coding rooms for classrooms. Write and run Python, JavaScript, Java, C++, and C# code together in real time." />
+    <meta property="og:url" content="%%SITE_URL%%" />
+    <meta property="og:image" content="%%SITE_URL%%/icon-512.png" />
+    <meta property="og:image:width" content="512" />
+    <meta property="og:image:height" content="512" />
+    <meta property="og:image:alt" content="CodeShare — collaborative code editor" />
+    <meta property="og:locale" content="en_US" />
+
+    <!-- ── Twitter Card ─────────────────────────────────────────────────── -->
+    <meta name="twitter:card" content="summary" />
+    <meta name="twitter:title" content="CodeShare — Free Real-time Collaborative Code Editor" />
+    <meta name="twitter:description" content="No-login coding rooms for classrooms. Write and run Python, JavaScript, Java, C++, and C# together in real time." />
+    <meta name="twitter:image" content="%%SITE_URL%%/icon-512.png" />
+
+    <!-- ── PWA ──────────────────────────────────────────────────────────── -->
     <link rel="manifest" href="/manifest.json" />
     <link rel="icon" href="/icon.svg" type="image/svg+xml" />
     <link rel="apple-touch-icon" href="/icon-192.png" />
     <meta name="theme-color" content="#161b22" />
     <meta name="mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
-    <meta
-      name="apple-mobile-web-app-status-bar-style"
-      content="black-translucent"
-    />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
     <meta name="apple-mobile-web-app-title" content="CodeShare" />
+
+    <!-- ── JSON-LD: WebApplication (SEO + GEO) ──────────────────────────── -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "WebApplication",
+      "name": "CodeShare",
+      "url": "%%SITE_URL%%",
+      "description": "Free real-time collaborative code editor for classrooms and teams. No login required. Supports Python, JavaScript, Java, C++, and C#.",
+      "applicationCategory": "DeveloperApplication",
+      "operatingSystem": "Any",
+      "browserRequirements": "Requires a modern web browser with JavaScript enabled",
+      "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" },
+      "featureList": [
+        "Real-time collaborative editing with live cursors",
+        "Multi-file tabs (Python, JavaScript, Java, C++, C#)",
+        "Built-in code runner powered by Wandbox",
+        "Password-protected rooms — no account needed",
+        "In-room chat and typing indicators",
+        "Host access control (grant/revoke edit permissions)",
+        "QR code room sharing",
+        "MongoDB persistence"
+      ],
+      "screenshot": "%%SITE_URL%%/icon-512.png",
+      "author": {
+        "@type": "Person",
+        "name": "Kasam Thapa Magar",
+        "url": "https://github.com/kasamthapa"
+      },
+      "isAccessibleForFree": true,
+      "inLanguage": "en"
+    }
+    </script>
+
+    <!-- ── JSON-LD: FAQPage (AEO — featured snippets & voice search) ─────── -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "FAQPage",
+      "mainEntity": [
+        {
+          "@type": "Question",
+          "name": "What is CodeShare?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "CodeShare is a free, open-source real-time collaborative code editor built for classrooms and coding sessions. Create a password-protected room and invite students or teammates — no account or login required."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Which programming languages does CodeShare support?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "CodeShare supports Python, JavaScript, Java, C++, and C# with full syntax highlighting and built-in code execution powered by Wandbox."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Is CodeShare free to use?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Yes, CodeShare is completely free and open-source. There is no account, subscription, or credit card required."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "How do I start a collaborative coding session?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Go to CodeShare, create a room with a name and password, then share the room name and password with your students or teammates. Everyone who joins can view and edit the same code in real time."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Can I run code directly in CodeShare?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Yes. CodeShare has a built-in code runner. Click the Run button to execute Python, JavaScript, Java, C++, or C# code without leaving the editor."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Does CodeShare require a login or account?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "No. CodeShare requires no login or account. Simply create or join a room using a room name and password."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Can the host control who can edit the code?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Yes. The host can set the room to view-only mode and individually grant or revoke edit access for each participant."
+          }
+        }
+      ]
+    }
+    </script>
+
+    <!-- ── JSON-LD: WebSite (GEO entity association) ─────────────────────── -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "WebSite",
+      "name": "CodeShare",
+      "url": "%%SITE_URL%%",
+      "description": "Free real-time collaborative code editor for classrooms — no login required",
+      "potentialAction": {
+        "@type": "SearchAction",
+        "target": "%%SITE_URL%%/?join={room_name}",
+        "query-input": "required name=room_name"
+      }
+    }
+    </script>
+
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
@@ -438,9 +578,90 @@
 }
 
 .footer-link i {
-  font-size: 24px;       /* keep size balanced with text */
+  font-size: 24px;
 }
 
+      /* ── Features grid ───────────────────────────────────────── */
+      .features {
+        width: 100%;
+        max-width: 460px;
+        margin-top: 1.75rem;
+      }
+      .feature-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 0.75rem;
+      }
+      .feature-card {
+        background: var(--bg2);
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        padding: 1rem;
+      }
+      .feature-icon {
+        font-size: 1.25rem;
+        margin-bottom: 0.4rem;
+      }
+      .feature-title {
+        font-size: 0.8rem;
+        font-weight: 600;
+        color: var(--text);
+        margin-bottom: 0.3rem;
+      }
+      .feature-desc {
+        font-size: 0.73rem;
+        color: var(--text2);
+        line-height: 1.5;
+      }
+
+      /* ── FAQ ─────────────────────────────────────────────────── */
+      .faq {
+        width: 100%;
+        max-width: 460px;
+        margin-top: 1.5rem;
+      }
+      .faq-heading {
+        font-size: 0.78rem;
+        font-weight: 600;
+        color: var(--text3);
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        margin-bottom: 0.65rem;
+      }
+      .faq-list {
+        display: flex;
+        flex-direction: column;
+        gap: 0.4rem;
+      }
+      .faq-item {
+        background: var(--bg2);
+        border: 1px solid var(--border);
+        border-radius: 10px;
+        overflow: hidden;
+      }
+      .faq-q {
+        display: block;
+        padding: 0.7rem 0.9rem;
+        font-size: 0.8rem;
+        font-weight: 500;
+        color: var(--text);
+        cursor: pointer;
+        list-style: none;
+        user-select: none;
+      }
+      .faq-q::-webkit-details-marker { display: none; }
+      .faq-q::before {
+        content: '+ ';
+        color: var(--accent);
+        font-weight: 700;
+      }
+      .faq-item[open] .faq-q::before { content: '− '; }
+      .faq-a {
+        padding: 0 0.9rem 0.75rem;
+        font-size: 0.78rem;
+        color: var(--text2);
+        line-height: 1.6;
+      }
 
     </style>
   </head>
@@ -588,6 +809,59 @@
           </button>
         </div>
       </div>
+
+      <!-- Features (visible + crawlable — feeds AEO/GEO) -->
+      <section class="features" aria-label="Key features">
+        <div class="feature-grid">
+          <div class="feature-card">
+            <div class="feature-icon">⚡</div>
+            <h2 class="feature-title">Real-time Collaboration</h2>
+            <p class="feature-desc">Multiple users edit the same file simultaneously. Live cursors and instant sync — no refresh needed.</p>
+          </div>
+          <div class="feature-card">
+            <div class="feature-icon">▶</div>
+            <h2 class="feature-title">Run Code Instantly</h2>
+            <p class="feature-desc">Execute Python, JavaScript, Java, C++, and C# directly in the browser. No local setup required.</p>
+          </div>
+          <div class="feature-card">
+            <div class="feature-icon">🔒</div>
+            <h2 class="feature-title">No Login Required</h2>
+            <p class="feature-desc">Create a password-protected room in seconds. Share the room name and password — that's it.</p>
+          </div>
+          <div class="feature-card">
+            <div class="feature-icon">📁</div>
+            <h2 class="feature-title">Multi-file Tabs</h2>
+            <p class="feature-desc">Organize work across multiple files. Create, rename, and delete files collaboratively in real time.</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- FAQ (AEO — feeds featured snippets and AI answer engines) -->
+      <section class="faq" id="faq" aria-label="Frequently asked questions">
+        <h2 class="faq-heading">Frequently Asked Questions</h2>
+        <div class="faq-list">
+          <details class="faq-item">
+            <summary class="faq-q">What is CodeShare?</summary>
+            <p class="faq-a">CodeShare is a free, open-source real-time collaborative code editor built for classrooms and coding sessions. Create a password-protected room and invite students or teammates — no account or login required.</p>
+          </details>
+          <details class="faq-item">
+            <summary class="faq-q">Which programming languages does CodeShare support?</summary>
+            <p class="faq-a">CodeShare supports Python, JavaScript, Java, C++, and C# with full syntax highlighting and built-in code execution.</p>
+          </details>
+          <details class="faq-item">
+            <summary class="faq-q">Is CodeShare free to use?</summary>
+            <p class="faq-a">Yes. CodeShare is completely free and open-source. No subscription, credit card, or account is required.</p>
+          </details>
+          <details class="faq-item">
+            <summary class="faq-q">Can I run code directly in CodeShare?</summary>
+            <p class="faq-a">Yes. Click the Run button to execute your code in the browser. Results appear instantly in the output panel.</p>
+          </details>
+          <details class="faq-item">
+            <summary class="faq-q">Can the host control who can edit?</summary>
+            <p class="faq-a">Yes. The host can switch the room to view-only mode and individually grant or revoke edit access for each participant.</p>
+          </details>
+        </div>
+      </section>
 
       <!-- Footer -->
  <div class="footer">
